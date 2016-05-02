@@ -14,7 +14,7 @@ int main(int argc, char **argv)
   vector<string> args; 
   getline(cin, command);
   split(args, command, is_any_of(" "));
-  while(!command.empty())
+  while(command.empty())
     {
       if(command == "import")
 	{
