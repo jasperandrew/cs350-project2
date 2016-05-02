@@ -4,6 +4,7 @@
 class LFS
 {
  public:
+  LFS();
 
  private:
 };
