@@ -1,7 +1,5 @@
 #include "lab7.h"
 
-
-
 vector< char*> blockBuffer;
 unsigned char segInfo[] = new unsigned char[4096];
 unsigned char iMap[];
@@ -10,9 +8,8 @@ struct segmentInfo{
     unsigned char offset;
 };
 
-int lab7::import(char * filename, char * lfs_filename)
+int import(char * filename, char * lfs_filename)
 {
-
     ifstream inputFile(filename, ifstream::in);
     if(inputFile)
     {
@@ -41,17 +38,21 @@ int lab7::import(char * filename, char * lfs_filename)
     }    
 }
 
+int initDrive()
+{
+	string path = "DRIVE";
+	mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+	path += "/SEGMENT";
+	for(int i = 0; i < 32; i++){
+		FILE *fp = fopen((path + to_string(i+1)).c_str(), "w");
+		ftruncate(fileno(fp), 1024*1024);
+		fclose(fp);
+	}
+	return 0;
+}
 
-//Drive creation should happen in external program
-//Should look for and read drive metadata in main
 int main(int argc, char **argv)
 {
-    string path = "DRIVE";
-    mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
-    path += "/SEGMENT";
-    for(int i = 0; i < 32; i++){
-        mkdir((path + to_string(i+1)).c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
-    }
     //argument parsing
     string command;
     vector<string> args;
@@ -68,17 +69,3 @@ int main(int argc, char **argv)
     }
     return 0;
 }
-int initDrive()
-{
-	string path = "DRIVE";
-	mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
-	path += "/SEGMENT";
-	for(int i = 0; i < 32; i++){
-		FILE *fp = fopen((path + to_string(i+1)).c_str(), "w");
-		ftruncate(fileno(fp), 1024*1024);
-		fclose(fp);
-	}
-	return 0;
-}
-
-
