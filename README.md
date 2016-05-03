@@ -1,6 +1,4 @@
-Author: JASPER ANDREW
-
-and these guys kinda helped: Daelin Fischman, Jacob Zwickler
+Authors: Daelin Fischman, Jacob Zwickler, Jasper Andrew
 
 === Notes ===
 
