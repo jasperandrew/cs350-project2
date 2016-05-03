@@ -38,6 +38,12 @@ int import(char * filename, char * lfs_filename)
     }    
 }
 
+int erase()
+{
+    //if segment info inode points to the same block as imapped-inode-block, block is live
+    //
+}
+
 int initDrive()
 {
 	string path = "DRIVE";
