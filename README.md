@@ -1,5 +1,4 @@
-Authors: Daelin Fischman, 
-Jasper Andrew, Jacob Zwickler
+Authors: Jasper Andrew, Daelin Fischman, Jacob Zwickler
 
 === Notes ===
 
