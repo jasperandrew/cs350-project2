@@ -66,6 +66,24 @@ int main(int argc, char **argv)
 	  cout << "importing file " <<  command << " lfs file\n";
 	  //import(arg1, arg2);                                                 
         }
+      else if(command == "import")
+        {
+          cout << "importing file " <<  command << " lfs file\n";
+          //import(arg1, arg2);                                                                                                                                                    
+        }
+      else if(command == "import")
+        {
+          cout << "importing file " <<  command << " lfs file\n";
+          //import(arg1, arg2);                                                                                                                                                
+	}
+      else if(command == "import")
+        {
+          cout << "importing file " <<  command << " lfs file\n";
+	}
+      else
+	{
+	  cout << "Need to enter correct commands!";
+	}
     }
   return 0;
 }
