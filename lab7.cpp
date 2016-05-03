@@ -12,7 +12,10 @@ using namespace boost::algorithm;
 vector< char*> blockBuffer;
 unsigned char segInfo[] = new unsigned char[4096];
 unsigned char iMap[];
-struct segmentInfo{};
+struct segmentInfo{
+    unsigned char block;
+    unsigned char offset;
+};
 
 int lab7::import(char * filename, char * lfs_filename)
 {
@@ -24,6 +27,7 @@ int lab7::import(char * filename, char * lfs_filename)
         while(inputFile.get(kbBlock,1025,EOF) && blockBuffer.size()< 1016)
         {
             blockBuffer.push_back(kbBlock);
+            //As you add blocks to buffe, add block info to sementInfo array/vector
         }
         if(blockBuffer.size() > 1015)
         {
