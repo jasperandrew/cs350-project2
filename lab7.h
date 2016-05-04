@@ -54,9 +54,10 @@ class WriteBuffer {
 		void writeToDisk();
 		int getNumBlocks();
 		Block getBlock(int idx);
+		int getSegCtr();
 	private:
 		Block buf[1016];
-		int numBlocks;
+		int num_blocks, seg_counter;
 };
 
 class CheckpointRegion {
@@ -79,7 +80,7 @@ int import(string filepath, string lfs_filename)
         iNodeBlock->setFilename(lfs_filename);
         while(1)
         {
-            if(wbuffer.getNumBlocks() >= 1016)
+            if(wbuffer.getNumBlocks() >= 1024)
             {
                 //segment info is already written
                 wbuffer.writeToDisk();
@@ -95,7 +96,7 @@ int import(string filepath, string lfs_filename)
             }
             else
             {
-                if(wbuffer.getNumBlocks() < 1016)
+                if(wbuffer.getNumBlocks() < 1024)
                 {
                     wbuffer.addBlock(*iNodeBlock);
 
@@ -114,20 +115,18 @@ int import(string filepath, string lfs_filename)
         }
     }    
 }
+
 /*
-//remove skeleton
 void remove(string filename)
 {
-  //find file and/or remove reference to file's inode/imap
-  //recycle inode 
+  //find file inode pointer in imap and remove it
 }
 
 void list()
 {
-  //find and list all files with there sizes 
+  //find and list all files with their sizes 
 }
 */
-
 
 int initDrive()
 {

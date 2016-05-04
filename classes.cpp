@@ -127,7 +127,8 @@ void Block::addSegEntry(char n, char m){
 // ======================== WriteBuffer ======================== //
 
 WriteBuffer::WriteBuffer(){
-	numBlocks = 8;
+	num_blocks = 8;
+	seg_counter = 0;
 	Block s(3);
 	for(int i = 0; i < 8; i++) buf[i] = s;
 }
@@ -135,26 +136,31 @@ WriteBuffer::WriteBuffer(){
 WriteBuffer::~WriteBuffer(){}
 
 void WriteBuffer::addBlock(Block b){
-	buf[numBlocks++] = b;
-	if(numBlocks == 1024) writeToDisk();
+	buf[num_blocks++] = b;
+	if(num_blocks == 1024) writeToDisk();
 }
 
 void WriteBuffer::writeToDisk(){
 	// Segment summary blocks
 	ofstream segment("DRIVE/SEGMENT1", ios::out | ios::binary);
-	for(int i = 0; i < numBlocks; i++){
+	for(int i = 0; i < num_blocks; i++){
 		segment.seekp(1024*i);
 		segment << buf[i].writeBlock();
 	}
 	segment.close();
-	numBlocks = 8;
+	num_blocks = 8;
+	seg_counter++;
 	if(DBG) cout << "Write buffer written to DISK.\n";			
 }
 
 int WriteBuffer::getNumBlocks(){
-	return numBlocks;
+	return num_blocks;
 }
 
 Block WriteBuffer::getBlock(int idx){
 	return buf[idx];
+}
+
+int WriteBuffer::getSegCtr(){
+	return seg_counter;
 }
