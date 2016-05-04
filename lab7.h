@@ -109,32 +109,30 @@ class CheckpointRegion {
 
 
 // ============================ FUNCTIONS ============================ //
-/*
-vector< char*> blockBuffer;
-unsigned char segInfo[] = new unsigned char[4096];
-unsigned char iMap[];
-struct segmentInfo{
-    unsigned char block;
-    unsigned char offset;
-};
 int import(char * filename, char * lfs_filename)
 {
     ifstream inputFile(filename, ifstream::in);
     if(inputFile)
     {
-        unsigned char * kbBlock = new unsigned char [1024];
-        while(inputFile.get(kbBlock,1025,EOF) && blockBuffer.size()< 1016)
+        char * kbBlock = new char [1024];
+        while(inputFile.get(kbBlock,1025,EOF) && newBuf.getNumBlocks()< 1016)
         {
-            blockBuffer.push_back(kbBlock);
+            Block tmpBlock();
+            tmpBlock.setType(1);
+            tmpBlock.setData(kbBlock);
+            newBuf.addBlock(kbBlock);
             //As you add blocks to buffe, add block info to sementInfo array/vector
         }
-        if(blockBuffer.size() > 1015)
+        if(newBuf.getNumBlocks() > 1015)
         {
-            //output the buffer to the next segment
+            //maybe should just call write
+            newBuf.writeToDisk();
         }
         if(!inputFile.get(kbBlock,1025,EOF))
         {
-            //write Inode, update imap,yadda yadda   
+            Block iNodeBlock();
+            iNodeBlock.setType(0);
+            //check that buffer has space, write new imap
         }
         else
         {
@@ -145,7 +143,7 @@ int import(char * filename, char * lfs_filename)
             cout <<blockBuffer[i] <<endl;
         }
     }    
-}*/
+}
 
 int initDrive()
 {
