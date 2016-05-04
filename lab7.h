@@ -34,6 +34,8 @@ class Block {
 		int getInodeNum(int idx);
 		char* writeImap();
 		char* writeInode();
+        bool addSegEntry(char n);
+        char * writeSegmentNode();
 		
 	private:
 		bool checkType(int t);
@@ -80,6 +82,9 @@ int import(char * filename, char * lfs_filename)
     {
         char * kbBlock = new char [1024];
         Block *iNodeBlock = new Block();
+        iNodeBlock->setType(0);
+        string iNodeFileName(lfs_filename);
+        iNodeBlock->setFilename(iNodeFileName);
         while(1)
         {
             if(newBuf.getNumBlocks() >= 1016)
@@ -93,17 +98,19 @@ int import(char * filename, char * lfs_filename)
                 tmpBlock->setType(1);
                 tmpBlock->setData(kbBlock);
                 newBuf.addBlock(*tmpBlock);
+                iNodeBlock->addFileBlock(newBuf.getNumBlocks());
                 //As you add blocks to buffer, add block info to segmentInfo array/vector add info to inode
 
             }
             else
             {
-                iNodeBlock->setType(0);
-                string iNodeFileName(lfs_filename);
-                iNodeBlock->setFilename(iNodeFileName);
                 if(newBuf.getNumBlocks() < 1016)
                 {
                     newBuf.addBlock(*iNodeBlock);
+
+                }
+                else
+                {
                 }
                 //check that buffer has space, write new imap, write to checkpoint variable
                 //Set Inode index as int returned by std::hash of lfs_filename

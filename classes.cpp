@@ -13,7 +13,7 @@ Block::Block(){
 Block::~Block(){}
 
 void Block::setType(int t){
-	if(t < 0 || t > 2){
+	if(t < 0 || t > 3){
 		cout << "[Error] Invalid block type.\n";
 		return;
 	}
@@ -89,6 +89,9 @@ void Block::setInodeNum(char oldNum, char newNum){
 	}
 	if(DBG) cout << "inode number not found.\n";
 }
+//include function getImap(Block *)
+//which copies the imap at block into a new imap 
+//which can then be modified
 
 bool Block::addInodeNum(char n){
 	if(!checkType(2)) return -1;
@@ -103,6 +106,21 @@ int Block::getInodeNum(int idx){
 char* Block::writeImap(){
 	if(!checkType(2)) return NULL;	
 	return data;
+}
+
+//add global variable? to store the 8 segInfo blocks
+//
+//Store nums in array until inode reached, then loop through array with below function
+bool Block::addSegEntry(char n){
+    if(!checkType(3)) return -1;
+    data[count++] = n;
+}
+
+//Actual write needs to be called for 8 nodes
+char * Block::writeSegmentNode()
+{
+    if(!checkType(3)) return NULL;
+    return data;
 }
 
 // ======================== WriteBuffer ======================== //
