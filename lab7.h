@@ -9,6 +9,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <sstream>
 
 using namespace std;
 
@@ -67,6 +68,7 @@ class CheckpointRegion {
 // ============================GLOBAL VARIABLES============================== //
 
 WriteBuffer wbuffer;
+vector<pair<int, string> > fileMap;
 
 
 // ============================ FUNCTIONS ============================ //
@@ -76,25 +78,26 @@ int import(string filepath, string lfs_filename)
     if(inputFile)
     {
         char kbBlock[1024];
-        Block iNodeBlock(1);
-        iNodeBlock.setFilename(lfs_filename);
+        Block * iNodeBlock = new Block(1);
+        iNodeBlock->setFilename(lfs_filename);
         inputFile.seekg (0, ios::end);
         int length = inputFile.tellg();
+        inputFile.seekg (0);
         if((1024-wbuffer.getNumBlocks()) <( length+2)) wbuffer.writeToDisk();
         while(1)
         {
             if(inputFile.get(kbBlock,1024,EOF))
             {
-                Block tmpBlock(0);
-                tmpBlock.setData(kbBlock);
-                wbuffer.addBlock(tmpBlock);
-                iNodeBlock.addPtr(1024 *getCnt() wbuffer.getNumBlocks());
+                Block * tmpBlock = new Block(0);
+                tmpBlock->setData(kbBlock);
+                wbuffer.addBlock(*tmpBlock);
+                iNodeBlock->addPtr(wbuffer.getNumBlocks());
                 //As you add blocks to buffer, add block info to segmentInfo array/vector add info to inode
 
             }
             else
             {
-                wbuffer.addBlock(iNodeBlock);
+                wbuffer.addBlock(*iNodeBlock);
                 //check that buffer has space, write new imap, write to checkpoint variable
                 //Set Inode index as int returned by std::hash of lfs_filename
                 //when looking for inode, hash filename and find it in imap
@@ -118,6 +121,27 @@ void list()
   //find and list all files with their sizes 
 }
 */
+
+int initFileMap()
+{
+    string path = "DRIVE/fileMap";
+    ifstream f(path.c_str());
+
+    if(f.good())
+    {
+        if(DBG) cout << "File Map exist\n";
+    }
+    FILE *fp = fopen(path, "w");
+    fclose(fp);
+    ofstream oFileMap("DRIVE/fileMap", ios::out | ios::binary);
+    for(int i = 0; i < fileMap.size(); i++)
+    {
+        oFileMap << fileMap[i].first << "\t" << fileMap[i].second << "\n";
+    } 
+    oFileMap.close();
+
+
+}
 
 int initDrive()
 {

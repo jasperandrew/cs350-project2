@@ -35,5 +35,28 @@ int main(int argc, char **argv)
 	  cout << "Need to enter correct commands with correct parameters!\n";
 	}
     }
+
+  ifstream inFileMap("DRIVE/fileMap");
+
+  if (inFileMap)
+  {
+      pair<int, string> tmp;
+      int iNodenum;
+      string line, tmpFileName;
+      while(getline(inFileMap,line))
+      {
+          stringstream s(line);
+          s >> iNodenum >> tmpFileName;
+          tmp.first = iNodenum;
+          tmp.second = tmpFileName;
+          fileMap.push_back(tmp);
+      }
+
+
+  }
+  else
+  {
+      //write file map on exit
+  }
   return 0;
 }
