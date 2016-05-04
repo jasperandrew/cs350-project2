@@ -70,32 +70,35 @@ int import(char * filename, char * lfs_filename)
     if(inputFile)
     {
         char * kbBlock = new char [1024];
-        while(inputFile.get(kbBlock,1025,EOF) && newBuf.getNumBlocks()< 1016)
+        while(1)
         {
-            Block tmpBlock();
-            tmpBlock.setType(1);
-            tmpBlock.setData(kbBlock);
-            newBuf.addBlock(kbBlock);
-            //As you add blocks to buffe, add block info to sementInfo array/vector
+            if(newBuf.getNumBlocks() > 1015)
+            {
+                //segment info is already written
+                newBuf.writeToDisk();
+            }
+            if(inputFile.get(kbBlock,1025,EOF))
+            {
+                Block tmpBlock();
+                tmpBlock.setType(1);
+                tmpBlock.setData(kbBlock);
+                newBuf.addBlock(kbBlock);
+                //As you add blocks to buffer, add block info to segmentInfo array/vector
+
+            }
+            else
+            {
+                Block iNodeBlock();
+                iNodeBlock.setType(0);
+                string iNodeFileName(lfs_filename);
+                iNodeBlock.setFilename(iNodeFileName);
+                //check that buffer has space, write new imap, write to checkpoint variable
+                //save kbBlock to write int next segment
+                break;
+            }
         }
-        if(newBuf.getNumBlocks() > 1015)
+        if(DBG)
         {
-            //maybe should just call write
-            newBuf.writeToDisk();
-        }
-        if(!inputFile.get(kbBlock,1025,EOF))
-        {
-            Block iNodeBlock();
-            iNodeBlock.setType(0);
-            //check that buffer has space, write new imap
-        }
-        else
-        {
-            //save kbBlock to write int next segment
-        }
-        for(int i=0; i <blockBuffer.size(); i++)
-        {
-            cout <<blockBuffer[i] <<endl;
         }
     }    
 }
