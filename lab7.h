@@ -110,6 +110,25 @@ int import(char * filename, char * lfs_filename)
         }
     }    
 }
+/*
+//remove skeleton
+void remove(string filename)
+{
+  //find file and/or remove reference to file's inode/imap
+  //recycle inode 
+}
+
+void list()
+{
+  //find and list all files with there sizes 
+}
+*/
+
+
+
+
+
+
 
 int initDrive()
 {
