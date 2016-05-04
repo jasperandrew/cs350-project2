@@ -22,82 +22,37 @@ using namespace boost::algorithm;
 
 class Block {
 	public:
-		Block(){
-			type = 0;
-			index = -1;
-		}
-		//~Block(){}
-		void setType(int t){
-			if(t < 0 || t > 2){
-				cout << "[Error] Invalid block type.\n";
-				return;
-			}
-			type = t;
-		}
-		int getType(){ return type; }
-		// data --------------------------------------
-		void setData(char *d){
-			if(!checkType(0)) return;
-			for(int i = 0; i < 1024; i++)
-				if(d[i]) data[i] = d[i];
-				else data[i] = 0;
-		}
-		char* getData(){
-			if(!checkType(0)) return NULL;
-			return data;
-		}
-		// inode -------------------------------------
-		void setFilename(string f){
-			if(!checkType(1)) return;
-			filename = f;
-		}
-		string getFilename(){
-			if(!checkType(1)) return (string)NULL;
-			return filename;
-		}
-		void addFileBlock(){}
-		int getFileBlocks(){
-			if(!checkType(1)) return -1;
-			return file_blocks;
-		}
-		// imap --------------------------------------
+		Block();
+		~Block();
+		void setType(int t);
+		int getType();
+		void setData(char *d);
+		char* getData();
+		void setFilename(string f);
+		string getFilename();
+		void addFileBlock();
+		int getFileBlocks();
+		
 	private:
-		bool checkType(int t){
-			if(t != type){
-				cout << "[Error] Invalid function for block type.\n";
-				return false;
-			}
-			return true;
-		}
+		bool checkType(int t);
 		int type;
 		int index;
-		// data --------------------------------------
+		// data
 		char data[1024];
-		// inode -------------------------------------
+		// inode
 		string filename;
 		int file_blocks, block_ptrs[128];
-		// imap --------------------------------------
+		// imap
 };
 
 class WriteBuffer {
 	public:
-		WriteBuffer(){
-			numBlocks = 0;
-		}
-		//~WriteBuffer(){}
-		void addBlock(Block b){
-			buf[numBlocks++] = b;
-			if(numBlocks == 1024){
-				numBlocks = 0;
-				if(DBG) cout << "Write buffer written to DISK.\n";
-			}
-		}
-		void writeToDisk(){
-			numBlocks = 0;
-			if(DBG) cout << "Write buffer written to DISK.\n";			
-		}
-		int getNumBlocks(){ return numBlocks; }
-		Block getBlock(int idx){ return buf[idx]; }
+		WriteBuffer();
+		~WriteBuffer();
+		void addBlock(Block b);
+		void writeToDisk();
+		int getNumBlocks();
+		Block getBlock(int idx);
 	private:
 		Block buf[1024];
 		int numBlocks;
@@ -178,5 +133,7 @@ int initDrive()
 	
 	return 0;
 }
+
+#include "classes.cpp"
 
 #endif
