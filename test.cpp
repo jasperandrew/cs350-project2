@@ -15,6 +15,7 @@ int main(int argc, char **argv)
 		segment.read(block, 1024);
 		cout << "[[BLOCK" << i+1 << "]]\n" << block << endl;
 	}
+	segment.close();
 
 	return 0;
 }
