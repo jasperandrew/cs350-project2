@@ -26,9 +26,13 @@ class Block {
 		char* getData();
 		void setFilename(string f);
 		string getFilename();
-		void addFileBlock();
+		void addFileBlock(char n);
 		int getFileBlocks();
+		bool addInodeNum(char n);
+		void setInodeNum(char oldNum, char newNum);
 		int getInodeNum(int idx);
+		char* writeImap();
+		char* writeInode();
 		
 	private:
 		bool checkType(int t);
@@ -38,9 +42,9 @@ class Block {
 		char data[1024];
 		// inode
 		string filename;
-		int file_blocks, block_ptrs[128];
+		int count;
+		char block_ptrs[128];
 		// imap
-		int inode_ptrs[1024];
 };
 
 class WriteBuffer {
