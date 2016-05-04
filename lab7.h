@@ -74,35 +74,26 @@ int import(string filepath, string lfs_filename)
     ifstream inputFile(filepath, ifstream::in);
     if(inputFile)
     {
-        char * kbBlock = new char [1024];
-        Block *iNodeBlock = new Block(1);
-        iNodeBlock->setFilename(lfs_filename);
+        char kbBlock[1024];
+        Block iNodeBlock(1);
+        iNodeBlock.setFilename(lfs_filename);
+        inputFile.seekg (0, ios::end);
+        int length = inputFile.tellg();
+        if((1024-wbuffer.getNumBlocks()) <( length+2)) wbuffer.writeToDisk();
         while(1)
         {
-            if(wbuffer.getNumBlocks() >= 1016)
-            {
-                //segment info is already written
-                wbuffer.writeToDisk();
-            }
             if(inputFile.get(kbBlock,1024,EOF))
             {
-                Block *tmpBlock = new Block(0);
-                tmpBlock->setData(kbBlock);
-                wbuffer.addBlock(*tmpBlock);
-                iNodeBlock->addPtr(wbuffer.getNumBlocks());
+                Block tmpBlock(0);
+                tmpBlock.setData(kbBlock);
+                wbuffer.addBlock(tmpBlock);
+                iNodeBlock.addPtr(1024 *getCnt() wbuffer.getNumBlocks());
                 //As you add blocks to buffer, add block info to segmentInfo array/vector add info to inode
 
             }
             else
             {
-                if(wbuffer.getNumBlocks() < 1016)
-                {
-                    wbuffer.addBlock(*iNodeBlock);
-
-                }
-                else
-                {
-                }
+                wbuffer.addBlock(iNodeBlock);
                 //check that buffer has space, write new imap, write to checkpoint variable
                 //Set Inode index as int returned by std::hash of lfs_filename
                 //when looking for inode, hash filename and find it in imap
