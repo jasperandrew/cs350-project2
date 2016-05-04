@@ -91,7 +91,7 @@ int import(string filepath, string lfs_filename)
                 Block tmpBlock(0);
                 tmpBlock.setData(kbBlock);
                 wbuffer.addBlock(tmpBlock);
-                iNodeBlock.addPtr(wbuffer.getNumBlocks());
+                iNodeBlock.addPtr(1024 * wbuffer.getSegCtr() + wbuffer.getNumBlocks());
                 //As you add blocks to buffer, add block info to segmentInfo array/vector add info to inode
 
             }
@@ -159,10 +159,18 @@ int initDrive()
 
 	// Create checkpoint region file
 	if(DBG) cout << "Creating checkpoint region file.\n";
-	FILE *fp = fopen((path + string("/CHECKPOINT_REGION")).c_str(), "w");
-	ftruncate(fileno(fp), 320);
-	fclose(fp);
+	FILE *cr = fopen((path + string("/CHECKPOINT_REGION")).c_str(), "w");
+	ftruncate(fileno(cr), 192);
+	fclose(cr);
 
+	// Create file map
+	if(DBG) cout << "Creating file map file.\n";
+	ofstream fm(path + string("/FILE_MAP"), ios::out);
+	//fm.seekp();
+	//FILE *fm = fopen(.c_str(), "w");
+	//ftruncate(fileno(fp), 192);
+	//fclose(fm);
+	fm.close();
 	// Create segment files
 	path += "/SEGMENT";
 	for(int i = 0; i < 32; i++){
