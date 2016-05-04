@@ -5,20 +5,24 @@
 Block::Block(){
 	type = 0;
 	count = 0;
-	index = -1;
 	
 	for(int i = 0; i < 1024; i++) data[i] = 0;
 }
 
-Block::~Block(){}
-
-void Block::setType(int t){
-	if(t < 0 || t > 2){
+Block::Block(int t){
+	if(t < 0 || t > 3){
 		cout << "[Error] Invalid block type.\n";
-		return;
+		exit(1);
 	}
 	type = t;
+	count = 0;
+	
+	for(int i = 0; i < 1024; i++) data[i] = 0;
+	if(type == 3)
+		for(char c : "segment summary") data[count++] = c;
 }
+
+Block::~Block(){}
 
 int Block::getType(){
 	return type;
@@ -33,11 +37,11 @@ bool Block::checkType(int t){
 }
 
 char* Block::writeBlock(){
-	if(type == 0 || type == 2) return data;
+	if(type == 0 || type == 2 || type == 3) return data;
 	if(type == 1){
 		int iPtr = 0;
 		for(int i = 0; i < filename.length(); i++) data[iPtr++] = filename[i];
-		iPtr++;
+		data[iPtr++] = -1;
 		for(int i = 0; i < count; i++) data[iPtr++] = block_ptrs[i];
 		return data;
 	}
@@ -69,12 +73,12 @@ string Block::getFilename(){
 	return filename;
 }
 
-void Block::addFileBlock(char n){
+void Block::addPtr(char n){
 	if(!checkType(1)) return;
 	block_ptrs[count++] = n;
 }
 
-int Block::getFileBlocks(){
+int Block::getNumPtrs(){
 	if(!checkType(1)) return -1;
 	return count;
 }
@@ -92,10 +96,14 @@ void Block::setInodeNum(char oldNum, char newNum){
 	}
 	if(DBG) cout << "inode number not found.\n";
 }
+//include function getImap(Block *)
+//which copies the imap at block into a new imap 
+//which can then be modified
 
 bool Block::addInodeNum(char n){
-	if(!checkType(2)) return -1;
+	if(!checkType(2)) return false;
 	data[count++] = n;
+	return true;
 }
 
 int Block::getInodeNum(int idx){
@@ -107,17 +115,28 @@ int Block::getInodeNum(int idx){
 
 
 
+//add global variable? to store the 8 segInfo blocks
+//
+//Store nums in array until inode reached, then loop through array with below function
+void Block::addSegEntry(char n, char m){
+    if(!checkType(3)) return;
+    data[count++] = n;
+		data[count++] = m;
+}
+
 // ======================== WriteBuffer ======================== //
 
 WriteBuffer::WriteBuffer(){
-	numBlocks = 0;
+	numBlocks = 8;
+	Block s(3);
+	for(int i = 0; i < 8; i++) buf[i] = s;
 }
 
 WriteBuffer::~WriteBuffer(){}
 
 void WriteBuffer::addBlock(Block b){
 	buf[numBlocks++] = b;
-	if(numBlocks == 1016) writeToDisk();
+	if(numBlocks == 1024) writeToDisk();
 }
 
 void WriteBuffer::writeToDisk(){
@@ -128,7 +147,7 @@ void WriteBuffer::writeToDisk(){
 		segment << buf[i].writeBlock();
 	}
 	segment.close();
-	numBlocks = 0;
+	numBlocks = 8;
 	if(DBG) cout << "Write buffer written to DISK.\n";			
 }
 

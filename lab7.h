@@ -20,24 +20,24 @@ using namespace std;
 class Block {
 	public:
 		Block();
+		Block(int t);
 		~Block();
-		void setType(int t);
 		int getType();
+		char* writeBlock();
 		void setData(char *d);
 		char* getData();
 		void setFilename(string f);
 		string getFilename();
-		void addFileBlock(char n);
-		int getFileBlocks();
+		void addPtr(char n);
+		int getNumPtrs();
 		bool addInodeNum(char n);
 		void setInodeNum(char oldNum, char newNum);
 		int getInodeNum(int idx);
-		char* writeBlock();
+		void addSegEntry(char n, char m);
 		
 	private:
 		bool checkType(int t);
 		int type;
-		int index;
 		// data
 		char data[1024];
 		// inode
@@ -65,44 +65,47 @@ class CheckpointRegion {
 
 // ============================GLOBAL VARIABLES============================== //
 
-WriteBuffer *tmpnewBuf = new WriteBuffer();
-WriteBuffer newBuf = *tmpnewBuf;
+WriteBuffer wbuffer;
 
 
 // ============================ FUNCTIONS ============================ //
-int import(char * filename, char * lfs_filename)
+int import(string filepath, string lfs_filename)
 {
-    ifstream inputFile(filename, ifstream::in);
+    ifstream inputFile(filepath, ifstream::in);
     if(inputFile)
     {
         char * kbBlock = new char [1024];
-        Block *iNodeBlock = new Block();
+        Block *iNodeBlock = new Block(1);
+        iNodeBlock->setFilename(lfs_filename);
         while(1)
         {
-            if(newBuf.getNumBlocks() >= 1016)
+            if(wbuffer.getNumBlocks() >= 1016)
             {
                 //segment info is already written
-                newBuf.writeToDisk();
+                wbuffer.writeToDisk();
             }
-            if(inputFile.get(kbBlock,1025,EOF))
+            if(inputFile.get(kbBlock,1024,EOF))
             {
-                Block *tmpBlock = new Block();
-                tmpBlock->setType(1);
+                Block *tmpBlock = new Block(0);
                 tmpBlock->setData(kbBlock);
-                newBuf.addBlock(*tmpBlock);
+                wbuffer.addBlock(*tmpBlock);
+                iNodeBlock->addPtr(wbuffer.getNumBlocks());
                 //As you add blocks to buffer, add block info to segmentInfo array/vector add info to inode
 
             }
             else
             {
-                iNodeBlock->setType(0);
-                string iNodeFileName(lfs_filename);
-                iNodeBlock->setFilename(iNodeFileName);
-                if(newBuf.getNumBlocks() < 1016)
+                if(wbuffer.getNumBlocks() < 1016)
                 {
-                    newBuf.addBlock(*iNodeBlock);
+                    wbuffer.addBlock(*iNodeBlock);
+
+                }
+                else
+                {
                 }
                 //check that buffer has space, write new imap, write to checkpoint variable
+                //Set Inode index as int returned by std::hash of lfs_filename
+                //when looking for inode, hash filename and find it in imap
                 break;
             }
         }
@@ -124,11 +127,6 @@ void list()
   //find and list all files with there sizes 
 }
 */
-
-
-
-
-
 
 
 int initDrive()
