@@ -34,29 +34,25 @@ int main(int argc, char **argv)
 	
 	m.addInodeNum('7');
 	
-	cout << a.getData() << endl;
-	cout << "\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
-	cout << b.getData() << endl;
-	cout << "\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
-	cout << c.getData() << endl;
-	cout << "\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
-	cout << i.writeInode() << endl;
-	cout << "\n\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
-	cout << m.writeImap() << endl;
+	cout << "\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n";
 	
-	/*
 	WriteBuffer wb;
 	
-	do{
-		wb.addBlock(b);
-	}while(wb.getNumBlocks() > 0);
-	
-	for(int i = 0; i < 512; i++){
-		wb.addBlock(b);
-	}
-	cout << wb.getBlock(511).getData() << endl;
-	
+	wb.addBlock(a);
+	wb.addBlock(b);
+	wb.addBlock(c);
+	wb.addBlock(i);
+	wb.addBlock(m);
+		
 	wb.writeToDisk();
-	*/
+	
+	ifstream segment("DRIVE/SEGMENT1", ios::in | ios::binary);
+	for(int i = 0; i < 5; i++){
+		segment.seekg(1024*i);
+		char stuf[1024] = {0};
+		segment.read(stuf, 1024);
+		cout << stuf << endl;
+	}
+
 	return 0;
 }

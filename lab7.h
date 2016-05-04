@@ -32,8 +32,7 @@ class Block {
 		bool addInodeNum(char n);
 		void setInodeNum(char oldNum, char newNum);
 		int getInodeNum(int idx);
-		char* writeImap();
-		char* writeInode();
+		char* writeBlock();
 		
 	private:
 		bool checkType(int t);
@@ -45,7 +44,6 @@ class Block {
 		string filename;
 		int count;
 		char block_ptrs[128];
-		// imap
 };
 
 class WriteBuffer {
@@ -69,7 +67,6 @@ class CheckpointRegion {
 
 WriteBuffer *tmpnewBuf = new WriteBuffer();
 WriteBuffer newBuf = *tmpnewBuf;
-
 
 
 // ============================ FUNCTIONS ============================ //

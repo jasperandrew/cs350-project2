@@ -32,6 +32,18 @@ bool Block::checkType(int t){
 	return true;
 }
 
+char* Block::writeBlock(){
+	if(type == 0 || type == 2) return data;
+	if(type == 1){
+		int iPtr = 0;
+		for(int i = 0; i < filename.length(); i++) data[iPtr++] = filename[i];
+		iPtr++;
+		for(int i = 0; i < count; i++) data[iPtr++] = block_ptrs[i];
+		return data;
+	}
+	return NULL;
+}
+
 // ---------------- data ---------------- //
 
 void Block::setData(char *d){
@@ -67,15 +79,6 @@ int Block::getFileBlocks(){
 	return count;
 }
 
-char* Block::writeInode(){
-	if(!checkType(1)) return NULL;
-	int iPtr = 0;
-	for(int i = 0; i < filename.length(); i++) data[iPtr++] = filename[i];
-	iPtr++;
-	for(int i = 0; i < count; i++) data[iPtr++] = block_ptrs[i];
-	return data;
-}
-
 // ---------------- imap ---------------- //
 
 void Block::setInodeNum(char oldNum, char newNum){
@@ -100,10 +103,9 @@ int Block::getInodeNum(int idx){
 	return data[idx];
 }
 
-char* Block::writeImap(){
-	if(!checkType(2)) return NULL;	
-	return data;
-}
+// ---------------- segment summary ---------------- //
+
+
 
 // ======================== WriteBuffer ======================== //
 
@@ -120,10 +122,12 @@ void WriteBuffer::addBlock(Block b){
 
 void WriteBuffer::writeToDisk(){
 	// Segment summary blocks
-	int iPtr = 0;
+	ofstream segment("DRIVE/SEGMENT1", ios::out | ios::binary);
 	for(int i = 0; i < numBlocks; i++){
-		
+		segment.seekp(1024*i);
+		segment << buf[i].writeBlock();
 	}
+	segment.close();
 	numBlocks = 0;
 	if(DBG) cout << "Write buffer written to DISK.\n";			
 }
