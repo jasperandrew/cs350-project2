@@ -5,16 +5,12 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
-
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
 
 using namespace std;
-using namespace boost::algorithm;
 
 #define DBG 1
 
@@ -32,6 +28,7 @@ class Block {
 		string getFilename();
 		void addFileBlock();
 		int getFileBlocks();
+		int getInodeNum(int idx);
 		
 	private:
 		bool checkType(int t);
@@ -43,6 +40,7 @@ class Block {
 		string filename;
 		int file_blocks, block_ptrs[128];
 		// imap
+		int inode_ptrs[1024];
 };
 
 class WriteBuffer {
@@ -54,7 +52,7 @@ class WriteBuffer {
 		int getNumBlocks();
 		Block getBlock(int idx);
 	private:
-		Block buf[1024];
+		Block buf[1016];
 		int numBlocks;
 };
 
