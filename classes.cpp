@@ -64,6 +64,15 @@ int Block::getFileBlocks(){
 
 // ---------------- imap ---------------- //
 
+void Block::setInodeNum(int idx, int n){
+	if(!checkType(2)) return;
+	inode_ptrs[idx] = n;
+}
+
+int Block::getInodeNum(int idx){
+	if(!checkType(2)) return -1;
+	return inode_ptrs[idx];
+}
 
 // ======================== WriteBuffer ======================== //
 
@@ -75,13 +84,11 @@ WriteBuffer::~WriteBuffer(){}
 
 void WriteBuffer::addBlock(Block b){
 	buf[numBlocks++] = b;
-	if(numBlocks == 1024){
-		numBlocks = 0;
-		if(DBG) cout << "Write buffer written to DISK.\n";
-	}
+	if(numBlocks == 1016) writeToDisk();
 }
 
 void WriteBuffer::writeToDisk(){
+	
 	numBlocks = 0;
 	if(DBG) cout << "Write buffer written to DISK.\n";			
 }
