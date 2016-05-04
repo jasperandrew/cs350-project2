@@ -102,6 +102,8 @@ int import(char * filename, char * lfs_filename)
                     newBuf.addBlock(*iNodeBlock);
                 }
                 //check that buffer has space, write new imap, write to checkpoint variable
+                //Set Inode index as int returned by std::hash of lfs_filename
+                //when looking for inode, hash filename and find it in imap
                 break;
             }
         }
