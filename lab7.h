@@ -14,6 +14,7 @@ using namespace std;
 
 #define DBG 1
 
+
 // ============================ CLASSES ============================ //
 
 class Block {
@@ -60,6 +61,12 @@ class CheckpointRegion {
 	
 };
 
+// ============================GLOBAL VARIABLES============================== //
+
+WriteBuffer *tmpnewBuf = new WriteBuffer();
+WriteBuffer newBuf = *tmpnewBuf;
+
+
 
 // ============================ FUNCTIONS ============================ //
 int import(char * filename, char * lfs_filename)
@@ -68,30 +75,33 @@ int import(char * filename, char * lfs_filename)
     if(inputFile)
     {
         char * kbBlock = new char [1024];
+        Block *iNodeBlock = new Block();
         while(1)
         {
-            if(newBuf.getNumBlocks() > 1015)
+            if(newBuf.getNumBlocks() >= 1016)
             {
                 //segment info is already written
                 newBuf.writeToDisk();
             }
             if(inputFile.get(kbBlock,1025,EOF))
             {
-                Block tmpBlock();
-                tmpBlock.setType(1);
-                tmpBlock.setData(kbBlock);
-                newBuf.addBlock(kbBlock);
-                //As you add blocks to buffer, add block info to segmentInfo array/vector
+                Block *tmpBlock = new Block();
+                tmpBlock->setType(1);
+                tmpBlock->setData(kbBlock);
+                newBuf.addBlock(*tmpBlock);
+                //As you add blocks to buffer, add block info to segmentInfo array/vector add info to inode
 
             }
             else
             {
-                Block iNodeBlock();
-                iNodeBlock.setType(0);
+                iNodeBlock->setType(0);
                 string iNodeFileName(lfs_filename);
-                iNodeBlock.setFilename(iNodeFileName);
+                iNodeBlock->setFilename(iNodeFileName);
+                if(newBuf.getNumBlocks() < 1016)
+                {
+                    newBuf.addBlock(*iNodeBlock);
+                }
                 //check that buffer has space, write new imap, write to checkpoint variable
-                //save kbBlock to write int next segment
                 break;
             }
         }
