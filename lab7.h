@@ -5,8 +5,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -14,7 +12,7 @@
 #include <vector>
 
 using namespace std;
-using namespace boost::algorithm;
+
 
 #define DBG 1
 
