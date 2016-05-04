@@ -14,6 +14,7 @@ using namespace std;
 
 #define DBG 1
 
+
 // ============================ CLASSES ============================ //
 
 class Block {
@@ -64,45 +65,74 @@ class CheckpointRegion {
 	
 };
 
+// ============================GLOBAL VARIABLES============================== //
+
+WriteBuffer *tmpnewBuf = new WriteBuffer();
+WriteBuffer newBuf = *tmpnewBuf;
+
+
 
 // ============================ FUNCTIONS ============================ //
-/*
-vector< char*> blockBuffer;
-unsigned char segInfo[] = new unsigned char[4096];
-unsigned char iMap[];
-struct segmentInfo{
-    unsigned char block;
-    unsigned char offset;
-};
 int import(char * filename, char * lfs_filename)
 {
     ifstream inputFile(filename, ifstream::in);
     if(inputFile)
     {
-        unsigned char * kbBlock = new unsigned char [1024];
-        while(inputFile.get(kbBlock,1025,EOF) && blockBuffer.size()< 1016)
+        char * kbBlock = new char [1024];
+        Block *iNodeBlock = new Block();
+        while(1)
         {
-            blockBuffer.push_back(kbBlock);
-            //As you add blocks to buffe, add block info to sementInfo array/vector
+            if(newBuf.getNumBlocks() >= 1016)
+            {
+                //segment info is already written
+                newBuf.writeToDisk();
+            }
+            if(inputFile.get(kbBlock,1025,EOF))
+            {
+                Block *tmpBlock = new Block();
+                tmpBlock->setType(1);
+                tmpBlock->setData(kbBlock);
+                newBuf.addBlock(*tmpBlock);
+                //As you add blocks to buffer, add block info to segmentInfo array/vector add info to inode
+
+            }
+            else
+            {
+                iNodeBlock->setType(0);
+                string iNodeFileName(lfs_filename);
+                iNodeBlock->setFilename(iNodeFileName);
+                if(newBuf.getNumBlocks() < 1016)
+                {
+                    newBuf.addBlock(*iNodeBlock);
+                }
+                //check that buffer has space, write new imap, write to checkpoint variable
+                break;
+            }
         }
-        if(blockBuffer.size() > 1015)
+        if(DBG)
         {
-            //output the buffer to the next segment
-        }
-        if(!inputFile.get(kbBlock,1025,EOF))
-        {
-            //write Inode, update imap,yadda yadda   
-        }
-        else
-        {
-            //save kbBlock to write int next segment
-        }
-        for(int i=0; i <blockBuffer.size(); i++)
-        {
-            cout <<blockBuffer[i] <<endl;
         }
     }    
-}*/
+}
+/*
+//remove skeleton
+void remove(string filename)
+{
+  //find file and/or remove reference to file's inode/imap
+  //recycle inode 
+}
+
+void list()
+{
+  //find and list all files with there sizes 
+}
+*/
+
+
+
+
+
+
 
 int initDrive()
 {
