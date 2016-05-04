@@ -78,8 +78,8 @@ int import(string filepath, string lfs_filename)
     if(inputFile)
     {
         char kbBlock[1024];
-        Block * iNodeBlock = new Block(1);
-        iNodeBlock->setFilename(lfs_filename);
+        Block iNodeBlock(1);
+        iNodeBlock.setFilename(lfs_filename);
         inputFile.seekg (0, ios::end);
         int length = inputFile.tellg();
         inputFile.seekg (0);
@@ -88,16 +88,16 @@ int import(string filepath, string lfs_filename)
         {
             if(inputFile.get(kbBlock,1024,EOF))
             {
-                Block * tmpBlock = new Block(0);
-                tmpBlock->setData(kbBlock);
-                wbuffer.addBlock(*tmpBlock);
-                iNodeBlock->addPtr(wbuffer.getNumBlocks());
+                Block tmpBlock(0);
+                tmpBlock.setData(kbBlock);
+                wbuffer.addBlock(tmpBlock);
+                iNodeBlock.addPtr(wbuffer.getNumBlocks());
                 //As you add blocks to buffer, add block info to segmentInfo array/vector add info to inode
 
             }
             else
             {
-                wbuffer.addBlock(*iNodeBlock);
+                wbuffer.addBlock(iNodeBlock);
                 //check that buffer has space, write new imap, write to checkpoint variable
                 //Set Inode index as int returned by std::hash of lfs_filename
                 //when looking for inode, hash filename and find it in imap
@@ -131,7 +131,7 @@ int initFileMap()
     {
         if(DBG) cout << "File Map exist\n";
     }
-    FILE *fp = fopen(path, "w");
+    FILE *fp = fopen(path.c_str(), "w");
     fclose(fp);
     ofstream oFileMap("DRIVE/fileMap", ios::out | ios::binary);
     for(int i = 0; i < fileMap.size(); i++)
