@@ -4,7 +4,10 @@
 
 Block::Block(){
 	type = 0;
+	count = 0;
 	index = -1;
+	
+	for(int i = 0; i < 1024; i++) data[i] = 0;
 }
 
 Block::~Block(){}
@@ -35,7 +38,6 @@ void Block::setData(char *d){
 	if(!checkType(0)) return;
 	for(int i = 0; i < 1024; i++)
 		if(d[i]) data[i] = d[i];
-		else data[i] = 0;
 }
 
 char* Block::getData(){
@@ -55,23 +57,52 @@ string Block::getFilename(){
 	return filename;
 }
 
-void Block::addFileBlock(){}
+void Block::addFileBlock(char n){
+	if(!checkType(1)) return;
+	block_ptrs[count++] = n;
+}
 
 int Block::getFileBlocks(){
 	if(!checkType(1)) return -1;
-	return file_blocks;
+	return count;
+}
+
+char* Block::writeInode(){
+	if(!checkType(1)) return NULL;
+	int iPtr = 0;
+	for(int i = 0; i < filename.length(); i++) data[iPtr++] = filename[i];
+	iPtr++;
+	for(int i = 0; i < count; i++) data[iPtr++] = block_ptrs[i];
+	return data;
 }
 
 // ---------------- imap ---------------- //
 
-void Block::setInodeNum(int idx, int n){
+void Block::setInodeNum(char oldNum, char newNum){
 	if(!checkType(2)) return;
-	inode_ptrs[idx] = n;
+	for(int i = 0; i < 1024; i++){
+		if(data[i] == oldNum){
+			data[i] = newNum;
+			if(DBG) cout << "Updated imap.\n";
+			return;
+		}
+	}
+	if(DBG) cout << "inode number not found.\n";
+}
+
+bool Block::addInodeNum(char n){
+	if(!checkType(2)) return -1;
+	data[count++] = n;
 }
 
 int Block::getInodeNum(int idx){
 	if(!checkType(2)) return -1;
-	return inode_ptrs[idx];
+	return data[idx];
+}
+
+char* Block::writeImap(){
+	if(!checkType(2)) return NULL;	
+	return data;
 }
 
 // ======================== WriteBuffer ======================== //
@@ -88,7 +119,11 @@ void WriteBuffer::addBlock(Block b){
 }
 
 void WriteBuffer::writeToDisk(){
-	
+	// Segment summary blocks
+	int iPtr = 0;
+	for(int i = 0; i < numBlocks; i++){
+		
+	}
 	numBlocks = 0;
 	if(DBG) cout << "Write buffer written to DISK.\n";			
 }
