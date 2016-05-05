@@ -3,26 +3,7 @@
 int main(int argc, char **argv)
 {
   initDrive();
-  ifstream inFileMap("DRIVE/fileMap");
-  if (inFileMap)
-  {
-      pair<int, string> tmp;
-      int iNodenum;
-      string line, tmpFileName;
-      if(DBG) cout<<"Reading Filename map\n";
-      while(getline(inFileMap,line))
-      {
-          stringstream s(line);
-          s >> iNodenum >> tmpFileName;
-          tmp.first = iNodenum;
-          tmp.second = tmpFileName;
-          fileMap.push_back(tmp);
-      }
-  }
-  else
-  {
-      initFileMap();
-  }
+  initFileMap();
   checkPointInit();
   //argument parsing
   string command;

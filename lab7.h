@@ -140,15 +140,30 @@ void remove(string filename)
     {
         if(fileMap[i].second == filename)
         {
+:q
+:wq
             fileMap.erase(fileMap.begin()+i);
         }
     }
+    
 
 }
 
 void list()
 {
-  //find and list all files with their sizes 
+    for(int i = 0; i < fileMap.size();i++)
+    {
+        cout<< fileMap[i].second<< "\n";
+
+    }
+}
+
+void readInode(int blockNum)
+{
+    int segment = blockNum/1024;
+    char tmpBuf[100];
+    sprintf(tmpBuf, "DRIVE/SEGMENT%d", segment);
+    ifstream f(tmpBuf);
 }
 
 void writeCheckpoint()
@@ -175,9 +190,22 @@ int initFileMap()
 
     if(f.good())
     {
+      pair<int, string> tmp;
+      int iNodenum;
+      string line, tmpFileName;
+      if(DBG) cout<<"Reading Filename map\n";
+      while(getline(f,line))
+      {
+          stringstream s(line);
+          s >> iNodenum >> tmpFileName;
+          tmp.first = iNodenum;
+          tmp.second = tmpFileName;
+          fileMap.push_back(tmp);
+      }
         if(DBG){ cout << "File map exists\n";}
         return 1;
     }
+    else{
     FILE *fp = fopen(path.c_str(), "w");
     fclose(fp);
     ofstream oFileMap("DRIVE/FILE_MAP", ios::out | ios::binary);
@@ -186,6 +214,7 @@ int initFileMap()
         oFileMap << fileMap[i].first << "\t" << fileMap[i].second << "\n";
     } 
     oFileMap.close();
+    }
 }
 
 void writeFileMap()
