@@ -140,8 +140,6 @@ void remove(string filename)
     {
         if(fileMap[i].second == filename)
         {
-:q
-:wq
             fileMap.erase(fileMap.begin()+i);
         }
     }

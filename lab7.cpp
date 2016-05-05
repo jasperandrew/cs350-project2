@@ -27,6 +27,7 @@ int main(int argc, char **argv)
       else if(args[0] == "list" && args.size() == 1)
 	{
 	  cout << "Listing all files...\n";
+      list();
 	}
       else if(args[0] == "exit" && args.size() == 1)
 	{
