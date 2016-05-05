@@ -59,11 +59,13 @@ class WriteBuffer {
 		void addBlock(Block b);
 		void writeToDisk();
 		int getNumBlocks();
+        int getInodeCounter(int increment);
 		Block getBlock(int idx);
+        Block createMapBlock();
 		int getSegCtr();
 	private:
 		Block buf[1016];
-		int num_blocks, seg_counter;
+		int num_blocks, seg_counter, inode_counter;
 };
 
 
@@ -71,11 +73,15 @@ class WriteBuffer {
 
 WriteBuffer wbuffer;
 vector<pair<int, string> > fileMap;
+
 struct Checkpoint_Region
 {
   unsigned int imaps[40];
   char liveBits[32];
 }Checkpoint_Region;
+
+int iMapList[40960];
+
 
 
 // ============================ FUNCTIONS ============================ //
@@ -85,8 +91,8 @@ int import(string filepath, string lfs_filename)
     if(inputFile)
     {
         char kbBlock[1024];
-        Block * iNodeBlock = new Block(1);
-        iNodeBlock->setFilename(lfs_filename);
+        Block iNodeBlock(1);
+        iNodeBlock.setFilename(lfs_filename);
         inputFile.seekg (0, ios::end);
         int length = inputFile.tellg();
         inputFile.seekg (0);
@@ -95,16 +101,19 @@ int import(string filepath, string lfs_filename)
         {
             if(inputFile.get(kbBlock,1024,EOF))
             {
-                Block * tmpBlock = new Block(0);
-                tmpBlock->setData(kbBlock);
-                wbuffer.addBlock(*tmpBlock);
-                iNodeBlock->addPtr(wbuffer.getNumBlocks());
+                Block tmpBlock(0);
+                tmpBlock.setData(kbBlock);
+                wbuffer.addBlock(tmpBlock);
+                iNodeBlock.addPtr(1024 * wbuffer.getSegCtr() + wbuffer.getNumBlocks());
                 //As you add blocks to buffer, add block info to segmentInfo array/vector add info to inode
 
             }
             else
             {
-                wbuffer.addBlock(*iNodeBlock);
+                wbuffer.addBlock(iNodeBlock);
+                iMapList[wbuffer.getInodeCounter(1)] = wbuffer.getNumBlocks();
+                wbuffer.addBlock(wbuffer.createMapBlock());
+               //write to Checkpoint Region 
                 //check that buffer has space, write new imap, write to checkpoint variable
                 //Set Inode index as int returned by std::hash of lfs_filename
                 //when looking for inode, hash filename and find it in imap
@@ -158,7 +167,7 @@ int initFileMap()
     {
         if(DBG) cout << "File Map exist\n";
     }
-    FILE *fp = fopen(path, "w");
+    FILE *fp = fopen(path.c_str(), "w");
     fclose(fp);
     ofstream oFileMap("DRIVE/fileMap", ios::out | ios::binary);
     for(int i = 0; i < fileMap.size(); i++)
@@ -186,10 +195,18 @@ int initDrive()
 
 	// Create checkpoint region file
 	if(DBG) cout << "Creating checkpoint region file.\n";
-	FILE *fp = fopen((path + string("/CHECKPOINT_REGION")).c_str(), "w");
-	ftruncate(fileno(fp), 320);
-	fclose(fp);
+	FILE *cr = fopen((path + string("/CHECKPOINT_REGION")).c_str(), "w");
+	ftruncate(fileno(cr), 192);
+	fclose(cr);
 
+	// Create file map
+	if(DBG) cout << "Creating file map file.\n";
+	ofstream fm(path + string("/FILE_MAP"), ios::out);
+	//fm.seekp();
+	//FILE *fm = fopen(.c_str(), "w");
+	//ftruncate(fileno(fp), 192);
+	//fclose(fm);
+	fm.close();
 	// Create segment files
 	path += "/SEGMENT";
 	for(int i = 0; i < 32; i++){

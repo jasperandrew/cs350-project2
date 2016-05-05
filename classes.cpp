@@ -97,14 +97,24 @@ void Block::setInodeNum(char oldNum, char newNum){
 	if(DBG) cout << "inode number not found.\n";
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3e2d9326c77a81c899f8f3eded2fb893965eeb41
 //include function getImap(Block *)
 //which copies the imap at block into a new imap 
 //which can then be modified
 
+
 bool Block::addInodeNum(char n){
 	if(!checkType(2)) return false;
-	data[count++] = n;
+	data[n] = wbuffer.getNumBlocks();
+    int lowestIndex = n/1024;
+    lowestIndex = lowestIndex*1024;
+    for(int x = lowestIndex; x < n; x++)
+    {
+        data[x-lowestIndex] = iMapList[x];
+    }
 	return true;
 }
 
@@ -163,8 +173,22 @@ void WriteBuffer::writeToDisk(){
 	if(DBG) cout << "Write buffer written to DISK.\n";			
 }
 
+int WriteBuffer::getInodeCounter(int increment){
+    int ret = inode_counter;
+    inode_counter += increment;
+    return ret;
+}
 int WriteBuffer::getNumBlocks(){
 	return num_blocks;
+}
+
+Block WriteBuffer::createMapBlock()
+{
+    Block mapBlock(2);
+    int currentIndex  = getInodeCounter(0);
+    //int lowerBound = currentIndex/1024;
+    mapBlock.addInodeNum(currentIndex);
+    return mapBlock;
 }
 
 Block WriteBuffer::getBlock(int idx){
