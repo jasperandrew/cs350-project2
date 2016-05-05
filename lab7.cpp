@@ -8,6 +8,7 @@ int main(int argc, char **argv)
   //argument parsing
   string command;
   vector<string> args;
+  cout<< "Hi There! Please Enter a Command or press <Enter> to quit:  ";
   while(getline(cin, command) && !command.empty())
     {
       args.clear();     
@@ -36,8 +37,13 @@ int main(int argc, char **argv)
 	}
       else
 	{
-	  cout << "Need to enter correct commands with correct parameters!\n";
+	  cout << "[Error]  You need to enter the following correct commands with correct parameters! \n";
+	  cout << "・import <filename> <lfs_filename>\n";
+	  cout << "・remove <lfs_filename>\n";
+	  cout << "・list\n";
+	  cout << "・exit\n";
 	}
+      cout<< "Hi There! Please Enter a Command or press <Enter> to quit:  ";
     }
 
   ifstream inFileMap("DRIVE/fileMap");
