@@ -178,7 +178,7 @@ void WriteBuffer::writeToDisk(){
 		segment << buf[i].writeBlock();
 	}
 	segment.close();
-    Checkpoint_Region.liveBits[nextSegment] = 1;
+	Checkpoint_Region.liveBits[nextSegment] = (char)1;
 	num_blocks = 8;
 	seg_counter++;
 	if(DBG) cout << "Write buffer written to DISK.\n";			
