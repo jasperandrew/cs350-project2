@@ -15,7 +15,7 @@ int main(int argc, char **argv)
       if(args[0] == "import" && args.size() == 3) 
 	{
 	  cout << "importing file: " <<  args[1] <<" \nwith lfs filename:" << args[2]<< "\n";
-	  //import(args1, args2);                                                 
+	  import(args[1], args[2]);                                                 
 	}
 
       else if(args[0] == "remove" && args.size() == 2)

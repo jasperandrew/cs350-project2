@@ -164,12 +164,21 @@ void WriteBuffer::addBlock(Block b){
 
 void WriteBuffer::writeToDisk(){
 	// Segment summary blocks
-	ofstream segment("DRIVE/SEGMENT1", ios::out | ios::binary);
+    char segBuf[100];
+    int nextSegment = 0;
+    for(int i = 0; i < 32; i++)
+    {
+        if(Checkpoint_Region.liveBits[i] != 0) nextSegment = i;
+    }
+    nextSegment++;
+    sprintf(segBuf,"DRIVE/SEGMENT%d",nextSegment);
+	ofstream segment(segBuf, ios::out | ios::binary);
 	for(int i = 0; i < num_blocks; i++){
 		segment.seekp(1024*i);
 		segment << buf[i].writeBlock();
 	}
 	segment.close();
+    Checkpoint_Region.liveBits[nextSegment] = 1;
 	num_blocks = 8;
 	seg_counter++;
 	if(DBG) cout << "Write buffer written to DISK.\n";			

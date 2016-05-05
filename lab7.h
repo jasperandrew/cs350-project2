@@ -148,10 +148,15 @@ void checkPointInit()
 
 
 
-/*
 void remove(string filename)
 {
-  //find file inode pointer in imap and remove it
+    for(int i = 0; i < fileMap.size(); i++)
+    {
+        if(fileMap[i].second == filename)
+        {
+            fileMap.erase(fileMap.begin()+i);
+        }
+    }
 }
 
 void list()
