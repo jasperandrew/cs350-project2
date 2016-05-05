@@ -163,7 +163,7 @@ void list()
 {
   //find and list all files with their sizes 
 }
-*/
+
 
 void writeCheckpoint()
 { 
@@ -172,6 +172,10 @@ void writeCheckpoint()
   for(int i = 0; i < 40; i++)
     {
       f << Checkpoint_Region.imaps[i] << "\n";
+    }
+  for(int i = 0; i < 32; i++)
+    {
+      f << Checkpoint_Region.liveBits[i] << "\n";
     }
   f.close();
 }
