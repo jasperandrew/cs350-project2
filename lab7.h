@@ -112,7 +112,7 @@ int import(string filepath, string lfs_filename)
 		
 		wbuffer.addBlock(inode_block);
         iMapList[wbuffer.getInodeCounter(1)] = wbuffer.getNumBlocks();
-        pair<int,string> tmpPair(wbuffer.getNumBlocks(),iNodeBlock.getFilename());
+        pair<int,string> tmpPair(wbuffer.getNumBlocks(),inode_block.getFilename());
         fileMap.push_back(tmpPair);
         Block tmp = wbuffer.createMapBlock();
         wbuffer.addBlock(tmp);
