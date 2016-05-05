@@ -5,6 +5,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
+
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -35,6 +39,7 @@ class Block {
 		void setInodeNum(char oldNum, char newNum);
 		int getInodeNum(int idx);
 		void addSegEntry(char n, char m);
+		bool addImapNum(char n);
 		
 	private:
 		bool checkType(int t);
@@ -61,14 +66,16 @@ class WriteBuffer {
 		int num_blocks, seg_counter;
 };
 
-class CheckpointRegion {
-	
-};
 
 // ============================GLOBAL VARIABLES============================== //
 
 WriteBuffer wbuffer;
 vector<pair<int, string> > fileMap;
+struct Checkpoint_Region
+{
+  unsigned int imaps[40];
+  char liveBits[32];
+}Checkpoint_Region;
 
 
 // ============================ FUNCTIONS ============================ //
@@ -110,6 +117,24 @@ int import(string filepath, string lfs_filename)
     }    
 }
 
+void checkPointInit()
+{
+  for(unsigned int imap: Checkpoint_Region.imaps)
+    {
+      imap = 0;
+    }
+  for(char liveBit: Checkpoint_Region.liveBits)
+    {
+      liveBit = 0;
+    }
+  return;
+}
+
+
+
+
+
+
 /*
 void remove(string filename)
 {
@@ -121,6 +146,8 @@ void list()
   //find and list all files with their sizes 
 }
 */
+
+
 
 int initFileMap()
 {

@@ -96,6 +96,8 @@ void Block::setInodeNum(char oldNum, char newNum){
 	}
 	if(DBG) cout << "inode number not found.\n";
 }
+
+
 //include function getImap(Block *)
 //which copies the imap at block into a new imap 
 //which can then be modified
@@ -110,6 +112,14 @@ int Block::getInodeNum(int idx){
 	if(!checkType(2)) return -1;
 	return data[idx];
 }
+
+// ---------------- Checkpoint ---------------------- //
+
+bool Block::addImapNum(char n){
+  if(!checkType(2)) return false;
+  return true;
+}
+
 
 // ---------------- segment summary ---------------- //
 

@@ -2,13 +2,14 @@
 
 int main(int argc, char **argv)
 {
+  checkPointInit();
   //argument parsing
   string command;
   vector<string> args;
   while(getline(cin, command) && !command.empty())
     {
       args.clear();     
-      split(args, command, is_any_of(" "));
+      boost::algorithm::split(args, command, boost::algorithm::is_any_of(" "));
       if(args[0] == "import" && args.size() == 3) 
 	{
 	  cout << "importing file: " <<  args[1] <<" \nwith lfs filename:" << args[2]<< "\n";
