@@ -5,6 +5,7 @@
 Block::Block(){
 	type = 0;
 	count = 0;
+	size = 0;
 	
 	for(int i = 0; i < 1024; i++) data[i] = 0;
 }
@@ -16,6 +17,7 @@ Block::Block(int t){
 	}
 	type = t;
 	count = 0;
+	size = 0;
 	
 	for(int i = 0; i < 1024; i++) data[i] = 0;
 	if(type == 3)
@@ -41,6 +43,8 @@ char* Block::writeBlock(){
 	if(type == 1){
 		int iPtr = 0;
 		for(int i = 0; i < filename.length(); i++) data[iPtr++] = filename[i];
+		data[iPtr++] = -1;
+		data[iPtr++] = size;
 		data[iPtr++] = -1;
 		for(int i = 0; i < count; i++) data[iPtr++] = block_ptrs[i];
 		return data;
@@ -68,10 +72,10 @@ void Block::setFilename(string f){
 	filename = f;
 }
 
-bool Block::dataFull()
-{   if(!checkType(2)) return false;
-    if (data[1023]) return true;
-    return false;
+bool Block::dataFull(){
+	if(!checkType(2)) return false;
+	if (data[1023]) return true;
+	return false;
 }
 
 string Block::getFilename(){
@@ -82,6 +86,7 @@ string Block::getFilename(){
 void Block::addPtr(char n){
 	if(!checkType(1)) return;
 	block_ptrs[count++] = n;
+	size++;
 }
 
 int Block::getNumPtrs(){

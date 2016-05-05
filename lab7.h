@@ -41,7 +41,7 @@ class Block {
 		int getInodeNum(int idx);
 		void addSegEntry(char n, char m);
 		bool addImapNum(char n);
-        bool dataFull();
+		bool dataFull();
 		
 	private:
 		bool checkType(int t);
@@ -51,6 +51,7 @@ class Block {
 		// inode
 		string filename;
 		int count;
+		int size;
 		char block_ptrs[128];
 };
 
@@ -166,18 +167,17 @@ void readInode(int blockNum)
 
 void writeCheckpoint()
 { 
-  ofstream f;
-  f.open("DRIVE/CHECKPOINT_REGION", std::ofstream::out | std::ofstream::trunc);
+  ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out | ios::trunc);
   for(int i = 0; i < 40; i++)
     {
-      f << Checkpoint_Region.imaps[i] << "\n";
+      checkpoint << Checkpoint_Region.imaps[i] << "\n";
     }
  
   for(int k = 0; k < 32; k++)
     {
-      f << (int)Checkpoint_Region.liveBits[k] << "\n";
+      checkpoint << (int)Checkpoint_Region.liveBits[k] << "\n";
       }
-  f.close();
+  checkpoint.close();
   return;
 }
 
@@ -231,22 +231,22 @@ int initDrive()
 	string path = "DRIVE";
 	ifstream f(path.c_str());
   if(f.good()){
-		if(DBG) cout << "DRIVE exists.\nLoading data.\n";
+		if(DBG) cout << "DRIVE exists\nLoading data\n";
 		return 1;
 	}
 
-	if(DBG) cout << "DRIVE does not exist.\nCreating DRIVE directory.\n";
+	if(DBG) cout << "DRIVE does not exist\nCreating DRIVE directory\n";
 
 	// Create drive directory
 	mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
 	// Create file map
-	if(DBG) cout << "Creating file map file.\n";
+	if(DBG) cout << "Creating file map file\n";
 	ofstream filemap(path + string("/FILE_MAP"), ios::out);
 	filemap.close();
 
 	// Create checkpoint region file
-	if(DBG) cout << "Creating checkpoint region file.\n";
+	if(DBG) cout << "Creating checkpoint region file\n";
 	ofstream checkpoint(path + string("/CHECKPOINT_REGION"), ios::out);
 	checkpoint.seekp(192-1);
 	checkpoint.write("", 1);
@@ -255,7 +255,7 @@ int initDrive()
 	// Create segment files
 	path += "/SEGMENT";
 	for(int i = 0; i < 32; i++){
-		if(DBG) cout << "Creating segment file " << i + 1 << ".\n";
+		if(DBG) cout << "Creating segment file " << i + 1 << "\n";
 		ofstream segment(path + to_string(i+1), ios::out);
 		segment.seekp(SEG_SZ-1);
 		segment.write("", 1);

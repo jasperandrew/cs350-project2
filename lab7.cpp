@@ -15,7 +15,7 @@ int main(int argc, char **argv)
       boost::algorithm::split(args, command, boost::algorithm::is_any_of(" "));
       if(args[0] == "import" && args.size() == 3) 
 	{
-	  cout << "importing file: " <<  args[1] <<" \nwith lfs filename:" << args[2]<< "\n";
+	  cout << "importing [" <<  args[1] <<"] with filename '" << args[2]<< "'\n";
 	  import(args[1], args[2]);                                                 
 	}
 
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	  cout << "Exiting...\n";
 	  wbuffer.writeToDisk();
 	  writeCheckpoint();
-      writeFileMap();
+    writeFileMap();
 	  exit(0);
 	}
       else
