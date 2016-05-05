@@ -2,6 +2,8 @@
 
 int main(int argc, char **argv)
 {
+  initDrive();
+  initFileMap();
   checkPointInit();
   //argument parsing
   string command;
@@ -29,6 +31,7 @@ int main(int argc, char **argv)
 	{
 	  cout << "Exiting...\n";
 	  wbuffer.writeToDisk();
+	  writeCheckpoint();
 	  exit(0);
 	}
       else

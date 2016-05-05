@@ -113,7 +113,7 @@ int import(string filepath, string lfs_filename)
                 wbuffer.addBlock(iNodeBlock);
                 iMapList[wbuffer.getInodeCounter(1)] = wbuffer.getNumBlocks();
                 wbuffer.addBlock(wbuffer.createMapBlock());
-               //write to Checkpoint Region 
+		//write to Checkpoint Region 
                 //check that buffer has space, write new imap, write to checkpoint variable
                 //Set Inode index as int returned by std::hash of lfs_filename
                 //when looking for inode, hash filename and find it in imap
@@ -155,6 +155,17 @@ void list()
   //find and list all files with their sizes 
 }
 */
+
+void writeCheckpoint()
+{ 
+  ofstream f;
+  f.open("DRIVE/CHECKPOINT_REGION");
+  for(int i = 0; i < 40; i++)
+    {
+      f << Checkpoint_Region.imaps[i] << "\n";
+    }
+  f.close();
+}
 
 
 
