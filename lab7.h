@@ -111,6 +111,12 @@ int import(string filepath, string lfs_filename)
 		}
 		
 		wbuffer.addBlock(inode_block);
+        iMapList[wbuffer.getInodeCounter(1)] = wbuffer.getNumBlocks();
+        pair<int,string> tmpPair(wbuffer.getNumBlocks(),inode_block.getFilename());
+        fileMap.push_back(tmpPair);
+        Block tmp = wbuffer.createMapBlock();
+        wbuffer.addBlock(tmp);
+        if(tmp.dataFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = wbuffer.getNumBlocks();
 	}
 	return 0;
 }
@@ -137,6 +143,7 @@ void remove(string filename)
             fileMap.erase(fileMap.begin()+i);
         }
     }
+
 }
 
 void list()
@@ -147,16 +154,18 @@ void list()
 void writeCheckpoint()
 { 
   ofstream f;
-  f.open("DRIVE/CHECKPOINT_REGION");
+  f.open("DRIVE/CHECKPOINT_REGION", std::ofstream::out | std::ofstream::trunc);
   for(int i = 0; i < 40; i++)
     {
       f << Checkpoint_Region.imaps[i] << "\n";
     }
-  for(int i = 0; i < 32; i++)
+ 
+  for(int k = 0; k < 32; k++)
     {
-      f << Checkpoint_Region.liveBits[i] << "\n";
-    }
+      f << (int)Checkpoint_Region.liveBits[k] << "\n";
+      }
   f.close();
+  return;
 }
 
 int initFileMap()
@@ -166,7 +175,8 @@ int initFileMap()
 
     if(f.good())
     {
-        if(DBG) cout << "File map exists\n";
+        if(DBG){ cout << "File map exists\n";}
+        return 1;
     }
     FILE *fp = fopen(path.c_str(), "w");
     fclose(fp);
@@ -176,6 +186,17 @@ int initFileMap()
         oFileMap << fileMap[i].first << "\t" << fileMap[i].second << "\n";
     } 
     oFileMap.close();
+}
+
+void writeFileMap()
+{
+    ofstream oFileMap("DRIVE/FILE_MAP", ios::out | ios::binary);
+    for(int i = 0; i < fileMap.size(); i++)
+    {
+        oFileMap << fileMap[i].first << "\t" << fileMap[i].second << "\n";
+    } 
+    oFileMap.close();
+
 }
 
 int initDrive()

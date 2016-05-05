@@ -180,7 +180,6 @@ void WriteBuffer::writeToDisk(){
 		segment << tmp_data;
 	}
 	segment.close();
-
 	Checkpoint_Region.liveBits[nextSegment] = 1;
 	num_blocks = 8;
 	seg_counter++;

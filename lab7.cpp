@@ -3,13 +3,33 @@
 int main(int argc, char **argv)
 {
   initDrive();
-  initFileMap();
+  ifstream inFileMap("DRIVE/fileMap");
+  if (inFileMap)
+  {
+      pair<int, string> tmp;
+      int iNodenum;
+      string line, tmpFileName;
+      if(DBG) cout<<"Reading Filename map\n";
+      while(getline(inFileMap,line))
+      {
+          stringstream s(line);
+          s >> iNodenum >> tmpFileName;
+          tmp.first = iNodenum;
+          tmp.second = tmpFileName;
+          fileMap.push_back(tmp);
+      }
+  }
+  else
+  {
+      initFileMap();
+  }
   checkPointInit();
   //argument parsing
   string command;
   vector<string> args;
-  while(getline(cin, command) && !command.empty())
-    {
+  while(1)
+    { 
+    getline(cin, command);
       args.clear();     
       boost::algorithm::split(args, command, boost::algorithm::is_any_of(" "));
       if(args[0] == "import" && args.size() == 3) 
@@ -32,6 +52,7 @@ int main(int argc, char **argv)
 	  cout << "Exiting...\n";
 	  wbuffer.writeToDisk();
 	  writeCheckpoint();
+      writeFileMap();
 	  exit(0);
 	}
       else
@@ -40,28 +61,5 @@ int main(int argc, char **argv)
 	}
     }
 
-  ifstream inFileMap("DRIVE/fileMap");
-
-  if (inFileMap)
-  {
-      pair<int, string> tmp;
-      int iNodenum;
-      string line, tmpFileName;
-      if(DBG) cout<<"Reading Filename map\n";
-      while(getline(inFileMap,line))
-      {
-          stringstream s(line);
-          s >> iNodenum >> tmpFileName;
-          tmp.first = iNodenum;
-          tmp.second = tmpFileName;
-          fileMap.push_back(tmp);
-      }
-
-
-  }
-  else
-  {
-      //write file map on exit
-  }
   return 0;
 }
