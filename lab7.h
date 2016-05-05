@@ -54,11 +54,13 @@ class WriteBuffer {
 		void addBlock(Block b);
 		void writeToDisk();
 		int getNumBlocks();
+        int getInodeCounter(int increment);
 		Block getBlock(int idx);
+        Block createMapBlock();
 		int getSegCtr();
 	private:
 		Block buf[1016];
-		int num_blocks, seg_counter;
+		int num_blocks, seg_counter, inode_counter;
 };
 
 class CheckpointRegion {
@@ -69,6 +71,7 @@ class CheckpointRegion {
 
 WriteBuffer wbuffer;
 vector<pair<int, string> > fileMap;
+int iMapList[40960];
 
 
 // ============================ FUNCTIONS ============================ //
@@ -98,6 +101,9 @@ int import(string filepath, string lfs_filename)
             else
             {
                 wbuffer.addBlock(iNodeBlock);
+                iMapList[wbuffer.getInodeCounter(1)] = wbuffer.getNumBlocks();
+                wbuffer.addBlock(wbuffer.createMapBlock());
+               //write to Checkpoint Region 
                 //check that buffer has space, write new imap, write to checkpoint variable
                 //Set Inode index as int returned by std::hash of lfs_filename
                 //when looking for inode, hash filename and find it in imap
