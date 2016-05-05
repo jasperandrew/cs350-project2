@@ -68,6 +68,12 @@ void Block::setFilename(string f){
 	filename = f;
 }
 
+bool Block::dataFull()
+{   if(!checkType(2)) return false;
+    if (data[1023]) return true;
+    return false;
+}
+
 string Block::getFilename(){
 	if(!checkType(1)) return (string)NULL;
 	return filename;
@@ -97,13 +103,6 @@ void Block::setInodeNum(char oldNum, char newNum){
 	if(DBG) cout << "inode number not found.\n";
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 3e2d9326c77a81c899f8f3eded2fb893965eeb41
-//include function getImap(Block *)
-//which copies the imap at block into a new imap 
-//which can then be modified
 
 
 bool Block::addInodeNum(char n){

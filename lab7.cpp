@@ -44,6 +44,7 @@ int main(int argc, char **argv)
       pair<int, string> tmp;
       int iNodenum;
       string line, tmpFileName;
+      if(DBG) cout<<"Reading Filename map\n";
       while(getline(inFileMap,line))
       {
           stringstream s(line);

@@ -40,6 +40,7 @@ class Block {
 		int getInodeNum(int idx);
 		void addSegEntry(char n, char m);
 		bool addImapNum(char n);
+        bool dataFull();
 		
 	private:
 		bool checkType(int t);
@@ -81,6 +82,7 @@ struct Checkpoint_Region
 }Checkpoint_Region;
 
 int iMapList[40960];
+int Checkpoint_Region_counter = 0;
 
 
 
@@ -112,7 +114,10 @@ int import(string filepath, string lfs_filename)
             {
                 wbuffer.addBlock(iNodeBlock);
                 iMapList[wbuffer.getInodeCounter(1)] = wbuffer.getNumBlocks();
-                wbuffer.addBlock(wbuffer.createMapBlock());
+                Block tmp = wbuffer.createMapBlock();
+
+                wbuffer.addBlock(tmp);
+                if(tmp.dataFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = wbuffer.getNumBlocks();
                //write to Checkpoint Region 
                 //check that buffer has space, write new imap, write to checkpoint variable
                 //Set Inode index as int returned by std::hash of lfs_filename
