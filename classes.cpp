@@ -145,12 +145,16 @@ void WriteBuffer::writeToDisk(){
 	ofstream segment("DRIVE/SEGMENT1", ios::out | ios::binary);
 	for(int i = 0; i < num_blocks; i++){
 		segment.seekp(1024*i);
-		segment << buf[i].writeBlock();
+		char tmp_data[1024] = {0};
+		for(int j = 0; j < BLOCK_SZ; j++)
+			tmp_data[j] = buf[i].writeBlock()[j];
+		segment << tmp_data;
 	}
 	segment.close();
+
 	num_blocks = 8;
 	seg_counter++;
-	if(DBG) cout << "Write buffer written to DISK.\n";			
+	if(DBG) cout << "\nWrite buffer written to DISK.\n";			
 }
 
 int WriteBuffer::getNumBlocks(){
