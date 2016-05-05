@@ -114,6 +114,8 @@ int import(string filepath, string lfs_filename)
             {
                 wbuffer.addBlock(iNodeBlock);
                 iMapList[wbuffer.getInodeCounter(1)] = wbuffer.getNumBlocks();
+                pair<int,string> tmpPair(wbuffer.getNumBlocks(),iNodeBlock.getFilename());
+                fileMap.push_back(tmpPair);
                 Block tmp = wbuffer.createMapBlock();
                 wbuffer.addBlock(tmp);
                 if(tmp.dataFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = wbuffer.getNumBlocks();
@@ -157,13 +159,13 @@ void remove(string filename)
             fileMap.erase(fileMap.begin()+i);
         }
     }
+
 }
 
 void list()
 {
   //find and list all files with their sizes 
 }
-*/
 
 void writeCheckpoint()
 { 
