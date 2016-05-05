@@ -105,6 +105,12 @@ void Block::setInodeNum(char oldNum, char newNum){
 
 
 
+
+//include function getImap(Block *)
+//which copies the imap at block into a new imap 
+//which can then be modified
+
+
 bool Block::addInodeNum(char n){
 	if(!checkType(2)) return false;
 	data[n] = wbuffer.getNumBlocks();
@@ -124,10 +130,7 @@ int Block::getInodeNum(int idx){
 
 // ---------------- Checkpoint ---------------------- //
 
-bool Block::addImapNum(char n){
-  if(!checkType(2)) return false;
-  return true;
-}
+
 
 
 // ---------------- segment summary ---------------- //

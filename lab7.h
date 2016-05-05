@@ -115,7 +115,6 @@ int import(string filepath, string lfs_filename)
                 wbuffer.addBlock(iNodeBlock);
                 iMapList[wbuffer.getInodeCounter(1)] = wbuffer.getNumBlocks();
                 Block tmp = wbuffer.createMapBlock();
-
                 wbuffer.addBlock(tmp);
                 if(tmp.dataFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = wbuffer.getNumBlocks();
                //write to Checkpoint Region 
@@ -160,6 +159,17 @@ void list()
   //find and list all files with their sizes 
 }
 */
+
+void writeCheckpoint()
+{ 
+  ofstream f;
+  f.open("DRIVE/CHECKPOINT_REGION");
+  for(int i = 0; i < 40; i++)
+    {
+      f << Checkpoint_Region.imaps[i] << "\n";
+    }
+  f.close();
+}
 
 
 
