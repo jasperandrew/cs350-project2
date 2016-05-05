@@ -68,6 +68,12 @@ void Block::setFilename(string f){
 	filename = f;
 }
 
+bool Block::dataFull()
+{   if(!checkType(2)) return false;
+    if (data[1023]) return true;
+    return false;
+}
+
 string Block::getFilename(){
 	if(!checkType(1)) return (string)NULL;
 	return filename;
@@ -96,13 +102,24 @@ void Block::setInodeNum(char oldNum, char newNum){
 	}
 	if(DBG) cout << "inode number not found.\n";
 }
+
+
+
+
 //include function getImap(Block *)
 //which copies the imap at block into a new imap 
 //which can then be modified
 
+
 bool Block::addInodeNum(char n){
 	if(!checkType(2)) return false;
-	data[count++] = n;
+	data[n] = wbuffer.getNumBlocks();
+    int lowestIndex = n/1024;
+    lowestIndex = lowestIndex*1024;
+    for(int x = lowestIndex; x < n; x++)
+    {
+        data[x-lowestIndex] = iMapList[x];
+    }
 	return true;
 }
 
@@ -110,6 +127,11 @@ int Block::getInodeNum(int idx){
 	if(!checkType(2)) return -1;
 	return data[idx];
 }
+
+// ---------------- Checkpoint ---------------------- //
+
+
+
 
 // ---------------- segment summary ---------------- //
 
@@ -142,7 +164,15 @@ void WriteBuffer::addBlock(Block b){
 
 void WriteBuffer::writeToDisk(){
 	// Segment summary blocks
-	ofstream segment("DRIVE/SEGMENT1", ios::out | ios::binary);
+    char segBuf[100];
+    int nextSegment = 0;
+    for(int i = 0; i < 32; i++)
+    {
+        if(Checkpoint_Region.liveBits[i] != 0) nextSegment = i;
+    }
+    nextSegment++;
+    sprintf(segBuf,"DRIVE/SEGMENT%d",nextSegment);
+	ofstream segment(segBuf, ios::out | ios::binary);
 	for(int i = 0; i < num_blocks; i++){
 		segment.seekp(1024*i);
 		char tmp_data[1024] = {0};
@@ -152,13 +182,28 @@ void WriteBuffer::writeToDisk(){
 	}
 	segment.close();
 
+	Checkpoint_Region.liveBits[nextSegment] = 1;
 	num_blocks = 8;
 	seg_counter++;
 	if(DBG) cout << "\nWrite buffer written to DISK.\n";			
 }
 
+int WriteBuffer::getInodeCounter(int increment){
+    int ret = inode_counter;
+    inode_counter += increment;
+    return ret;
+}
 int WriteBuffer::getNumBlocks(){
 	return num_blocks;
+}
+
+Block WriteBuffer::createMapBlock()
+{
+    Block mapBlock(2);
+    int currentIndex  = getInodeCounter(0);
+    //int lowerBound = currentIndex/1024;
+    mapBlock.addInodeNum(currentIndex);
+    return mapBlock;
 }
 
 Block WriteBuffer::getBlock(int idx){

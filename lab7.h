@@ -5,6 +5,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/classification.hpp>
+
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -36,6 +40,8 @@ class Block {
 		void setInodeNum(char oldNum, char newNum);
 		int getInodeNum(int idx);
 		void addSegEntry(char n, char m);
+		bool addImapNum(char n);
+        bool dataFull();
 		
 	private:
 		bool checkType(int t);
@@ -55,21 +61,30 @@ class WriteBuffer {
 		void addBlock(Block b);
 		void writeToDisk();
 		int getNumBlocks();
+        int getInodeCounter(int increment);
 		Block getBlock(int idx);
+        Block createMapBlock();
 		int getSegCtr();
 	private:
 		Block buf[1016];
-		int num_blocks, seg_counter;
+		int num_blocks, seg_counter, inode_counter;
 };
 
-class CheckpointRegion {
-	
-};
 
 // ============================GLOBAL VARIABLES============================== //
 
 WriteBuffer wbuffer;
 vector<pair<int, string> > fileMap;
+
+struct Checkpoint_Region
+{
+  unsigned int imaps[40];
+  char liveBits[32];
+}Checkpoint_Region;
+
+int iMapList[40960];
+int Checkpoint_Region_counter = 0;
+
 
 
 // ============================ FUNCTIONS ============================ //
@@ -99,52 +114,59 @@ int import(string filepath, string lfs_filename)
 	}
 	return 0;
 }
-				
-					/*
-            if(inputFile.get(kbBlock,1024,EOF))
-            {
-                Block tmpBlock(0);
-                tmpBlock.setData(kbBlock);
-								
-								cout << kbBlock[BLOCK_SZ-2] << kbBlock[BLOCK_SZ-1] << kbBlock[BLOCK_SZ] << endl;
-								//if(kbBlock[BLOCK_SZ-2]) cout << kbBlock[BLOCK_SZ-2];
-								//else cout << "~";
 
-                wbuffer.addBlock(tmpBlock);
-                iNodeBlock.addPtr(1024 * wbuffer.getSegCtr() + wbuffer.getNumBlocks());
-                //As you add blocks to buffer, add block info to segmentInfo array/vector add info to inode
-
-            }
-            else
-            {
-                wbuffer.addBlock(iNodeBlock);
-                //check that buffer has space, write new imap, write to checkpoint variable
-                //Set Inode index as int returned by std::hash of lfs_filename
-                //when looking for inode, hash filename and find it in imap
-                break;
-            }
-        }
-        if(DBG)
-        {
-        }
-    }    
+void checkPointInit()
+{
+  for(unsigned int imap: Checkpoint_Region.imaps)
+    {
+      imap = 0;
+    }
+  for(char liveBit: Checkpoint_Region.liveBits)
+    {
+      liveBit = 0;
+    }
+  return;
 }
 
-/*
 void remove(string filename)
 {
-  //find file inode pointer in imap and remove it
+    for(int i = 0; i < fileMap.size(); i++)
+    {
+        if(fileMap[i].second == filename)
+        {
+            fileMap.erase(fileMap.begin()+i);
+        }
+    }
 }
 
 void list()
 {
   //find and list all files with their sizes 
 }
-*/
 
-int updateFileMap()
-{		
-    ofstream oFileMap("DRIVE/FILE_MAP", ios::out | ios::binary);
+void writeCheckpoint()
+{ 
+  ofstream f;
+  f.open("DRIVE/CHECKPOINT_REGION");
+  for(int i = 0; i < 40; i++)
+    {
+      f << Checkpoint_Region.imaps[i] << "\n";
+    }
+  f.close();
+}
+
+int initFileMap()
+{
+    string path = "DRIVE/fileMap";
+    ifstream f(path.c_str());
+
+    if(f.good())
+    {
+        if(DBG) cout << "File Map exist\n";
+    }
+    FILE *fp = fopen(path.c_str(), "w");
+    fclose(fp);
+    ofstream oFileMap("DRIVE/fileMap", ios::out | ios::binary);
     for(int i = 0; i < fileMap.size(); i++)
     {
         oFileMap << fileMap[i].first << "\t" << fileMap[i].second << "\n";
