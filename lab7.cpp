@@ -3,7 +3,26 @@
 int main(int argc, char **argv)
 {
   initDrive();
-  initFileMap();
+  ifstream inFileMap("DRIVE/fileMap");
+  if (inFileMap)
+  {
+      pair<int, string> tmp;
+      int iNodenum;
+      string line, tmpFileName;
+      if(DBG) cout<<"Reading Filename map\n";
+      while(getline(inFileMap,line))
+      {
+          stringstream s(line);
+          s >> iNodenum >> tmpFileName;
+          tmp.first = iNodenum;
+          tmp.second = tmpFileName;
+          fileMap.push_back(tmp);
+      }
+  }
+  else
+  {
+      initFileMap();
+  }
   checkPointInit();
   //argument parsing
   string command;
@@ -33,6 +52,7 @@ int main(int argc, char **argv)
 	  cout << "Exiting...\n";
 	  wbuffer.writeToDisk();
 	  writeCheckpoint();
+      writeFileMap();
 	  exit(0);
 	}
       else
@@ -46,28 +66,5 @@ int main(int argc, char **argv)
       cout<< "Hi There! Please Enter a Command or press <Enter> to quit:  ";
     }
 
-  ifstream inFileMap("DRIVE/fileMap");
-
-  if (inFileMap)
-  {
-      pair<int, string> tmp;
-      int iNodenum;
-      string line, tmpFileName;
-      if(DBG) cout<<"Reading Filename map\n";
-      while(getline(inFileMap,line))
-      {
-          stringstream s(line);
-          s >> iNodenum >> tmpFileName;
-          tmp.first = iNodenum;
-          tmp.second = tmpFileName;
-          fileMap.push_back(tmp);
-      }
-
-
-  }
-  else
-  {
-      //write file map on exit
-  }
   return 0;
 }
