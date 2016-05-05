@@ -3,33 +3,14 @@
 int main(int argc, char **argv)
 {
   initDrive();
-  ifstream inFileMap("DRIVE/fileMap");
-  if (inFileMap)
-  {
-      pair<int, string> tmp;
-      int iNodenum;
-      string line, tmpFileName;
-      if(DBG) cout<<"Reading Filename map\n";
-      while(getline(inFileMap,line))
-      {
-          stringstream s(line);
-          s >> iNodenum >> tmpFileName;
-          tmp.first = iNodenum;
-          tmp.second = tmpFileName;
-          fileMap.push_back(tmp);
-      }
-  }
-  else
-  {
-      initFileMap();
-  }
+  initFileMap();
   checkPointInit();
   //argument parsing
   string command;
   vector<string> args;
-  while(1)
-    { 
-    getline(cin, command);
+  cout<< "Hi There! Please Enter a Command or press <Enter> to quit:  ";
+  while(getline(cin, command) && !command.empty())
+    {
       args.clear();     
       boost::algorithm::split(args, command, boost::algorithm::is_any_of(" "));
       if(args[0] == "import" && args.size() == 3) 
@@ -57,8 +38,13 @@ int main(int argc, char **argv)
 	}
       else
 	{
-	  cout << "Need to enter correct commands with correct parameters!\n";
+	  cout << "[Error]  You need to enter the following correct commands with correct parameters! \n";
+	  cout << "・import <filename> <lfs_filename>\n";
+	  cout << "・remove <lfs_filename>\n";
+	  cout << "・list\n";
+	  cout << "・exit\n";
 	}
+      cout<< "Hi There! Please Enter a Command or press <Enter> to quit:  ";
     }
 
   return 0;
