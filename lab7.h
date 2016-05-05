@@ -154,16 +154,18 @@ void list()
 void writeCheckpoint()
 { 
   ofstream f;
-  f.open("DRIVE/CHECKPOINT_REGION");
+  f.open("DRIVE/CHECKPOINT_REGION", std::ofstream::out | std::ofstream::trunc);
   for(int i = 0; i < 40; i++)
     {
       f << Checkpoint_Region.imaps[i] << "\n";
     }
-  for(int i = 0; i < 32; i++)
+ 
+  for(int k = 0; k < 32; k++)
     {
-      f << Checkpoint_Region.liveBits[i] << "\n";
-    }
+      f << (int)Checkpoint_Region.liveBits[k] << "\n";
+      }
   f.close();
+  return;
 }
 
 int initFileMap()
