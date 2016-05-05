@@ -47,7 +47,7 @@ class Block {
 		bool checkType(int t);
 		int type;
 		// data
-		char data[1024];
+		char data[BLOCK_SZ];
 		// inode
 		string filename;
 		int count;
@@ -66,7 +66,7 @@ class WriteBuffer {
         Block createMapBlock();
 		int getSegCtr();
 	private:
-		Block buf[1016];
+		Block buf[BLOCK_SZ];
 		int num_blocks, seg_counter, inode_counter;
 };
 
@@ -97,16 +97,16 @@ int import(string filepath, string lfs_filename)
 		Block inode_block(1);
 		inode_block.setFilename(lfs_filename);
 		//if((1024-wbuffer.getNumBlocks()) <( length+2)) wbuffer.writeToDisk();
-		for(int i = 0; i < file_len; i += 1024){
+		for(int i = 0; i < file_len; i += BLOCK_SZ){
 			input_file.seekg(i);
-			char tmp_data[1024] = {0};
-			input_file.read(tmp_data, 1024);
+			char tmp_data[BLOCK_SZ] = {0};
+			input_file.read(tmp_data, BLOCK_SZ);
 			
 			Block data_block(0);
 			data_block.setData(tmp_data);
 			
 			wbuffer.addBlock(data_block);
-			int block_number = 1024 * wbuffer.getSegCtr() + wbuffer.getNumBlocks();
+			int block_number = BLOCK_SZ * wbuffer.getSegCtr() + wbuffer.getNumBlocks();
 			inode_block.addPtr(block_number);
 		}
 		
@@ -259,7 +259,7 @@ int initDrive()
 	for(int i = 0; i < 32; i++){
 		if(DBG) cout << "Creating segment file " << i + 1 << ".\n";
 		ofstream segment(path + to_string(i+1), ios::out);
-		segment.seekp(1024*1024-1);
+		segment.seekp(SEG_SZ-1);
 		segment.write("", 1);
 		segment.close();
 	}
