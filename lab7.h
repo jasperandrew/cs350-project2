@@ -157,16 +157,16 @@ void writeCheckpoint()
 
 int initFileMap()
 {
-    string path = "DRIVE/fileMap";
+    string path = "DRIVE/FILE_MAP";
     ifstream f(path.c_str());
 
     if(f.good())
     {
-        if(DBG) cout << "File Map exist\n";
+        if(DBG) cout << "File map exists\n";
     }
     FILE *fp = fopen(path.c_str(), "w");
     fclose(fp);
-    ofstream oFileMap("DRIVE/fileMap", ios::out | ios::binary);
+    ofstream oFileMap("DRIVE/FILE_MAP", ios::out | ios::binary);
     for(int i = 0; i < fileMap.size(); i++)
     {
         oFileMap << fileMap[i].first << "\t" << fileMap[i].second << "\n";
