@@ -41,10 +41,13 @@ bool Block::checkType(int t){
 char* Block::writeBlock(){
 	if(type == 0 || type == 2 || type == 3) return data;
 	if(type == 1){
+        string size_string;
 		int iPtr = 0;
+        data[iPtr++] = -1;
 		for(int i = 0; i < filename.length(); i++) data[iPtr++] = filename[i];
 		data[iPtr++] = -1;
-		data[iPtr++] = size;
+        size_string = to_string(size);
+		for(int i = 0; i < size_string.length(); i++) data[iPtr++] = size_string[i];
 		data[iPtr++] = -1;
 		for(int i = 0; i < count; i++) data[iPtr++] = block_ptrs[i];
 		return data;
@@ -66,6 +69,11 @@ char* Block::getData(){
 }
 
 // ---------------- inode ---------------- //
+
+void Block::setSize(int length){
+    if(!checkType(1)) return;
+    size = length;
+}
 
 void Block::setFilename(string f){
 	if(!checkType(1)) return;
