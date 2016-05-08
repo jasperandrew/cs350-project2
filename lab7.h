@@ -164,31 +164,23 @@ int readInode(int blockNum, string filename)
     int size = -1;
     while(f){
         f.get(tmp);
-        //if(DBG)cout << tmp <<"\n";
         if(tmp == -1){
-            if(DBG)cout << "found -1 \n";
-            while(f.peek() != -1)
+            while(f.get(tmp) && tmp != -1)
             {
-                f.get(tmp);
                 tmp_file_name.insert(tmp_file_name.end(),tmp);
             }
-            if(DBG)cout << "filename:" << tmp_file_name<< " \n";
             if(tmp_file_name == filename)
             {
-            if(DBG)cout << "found it \n";
-                f.get(tmp);
-                while(f.peek() != -1)
+                while(f.get(tmp) && tmp != -1)
                 {
-                    f.get(tmp);
                     tmp_size.insert(tmp_size.end(),tmp);
                 }
-                size = stoi(tmp_size);
+                size = stoi(tmp_size,nullptr,10);
             }
-            return size;
-            //}
         }
     }
-    return -1;
+    f.close();
+    return size;
 }
 
 
@@ -204,18 +196,18 @@ void list()
 }
 void writeCheckpoint()
 { 
-  ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out | ios::trunc);
-  for(int i = 0; i < 40; i++)
+    ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out | ios::trunc);
+    for(int i = 0; i < 40; i++)
     {
-      checkpoint << Checkpoint_Region.imaps[i] << "\n";
+        checkpoint << Checkpoint_Region.imaps[i] << "\n";
     }
- 
-  for(int k = 0; k < 32; k++)
+
+    for(int k = 0; k < 32; k++)
     {
-      checkpoint << (int)Checkpoint_Region.liveBits[k] << "\n";
-      }
-  checkpoint.close();
-  return;
+        checkpoint << (int)Checkpoint_Region.liveBits[k] << "\n";
+    }
+    checkpoint.close();
+    return;
 }
 
 int initFileMap()
@@ -225,30 +217,30 @@ int initFileMap()
 
     if(f.good())
     {
-      pair<int, string> tmp;
-      int iNodenum;
-      string line, tmpFileName;
-      if(DBG) cout<<"Reading Filename map\n";
-      while(getline(f,line))
-      {
-          stringstream s(line);
-          s >> iNodenum >> tmpFileName;
-          tmp.first = iNodenum;
-          tmp.second = tmpFileName;
-          fileMap.push_back(tmp);
-      }
+        pair<int, string> tmp;
+        int iNodenum;
+        string line, tmpFileName;
+        if(DBG) cout<<"Reading Filename map\n";
+        while(getline(f,line))
+        {
+            stringstream s(line);
+            s >> iNodenum >> tmpFileName;
+            tmp.first = iNodenum;
+            tmp.second = tmpFileName;
+            fileMap.push_back(tmp);
+        }
         if(DBG){ cout << "File map exists\n";}
         return 1;
     }
     else{
-    FILE *fp = fopen(path.c_str(), "w");
-    fclose(fp);
-    ofstream oFileMap("DRIVE/FILE_MAP", ios::out | ios::binary);
-    for(int i = 0; i < fileMap.size(); i++)
-    {
-        oFileMap << fileMap[i].first << "\t" << fileMap[i].second << "\n";
-    } 
-    oFileMap.close();
+        FILE *fp = fopen(path.c_str(), "w");
+        fclose(fp);
+        ofstream oFileMap("DRIVE/FILE_MAP", ios::out | ios::binary);
+        for(int i = 0; i < fileMap.size(); i++)
+        {
+            oFileMap << fileMap[i].first << "\t" << fileMap[i].second << "\n";
+        } 
+        oFileMap.close();
     }
 }
 
@@ -265,41 +257,41 @@ void writeFileMap()
 
 int initDrive()
 {
-	string path = "DRIVE";
-	ifstream f(path.c_str());
-  if(f.good()){
-		if(DBG) cout << "DRIVE exists\nLoading data\n";
-		return 1;
-	}
+    string path = "DRIVE";
+    ifstream f(path.c_str());
+    if(f.good()){
+        if(DBG) cout << "DRIVE exists\nLoading data\n";
+        return 1;
+    }
 
-	if(DBG) cout << "DRIVE does not exist\nCreating DRIVE directory\n";
+    if(DBG) cout << "DRIVE does not exist\nCreating DRIVE directory\n";
 
-	// Create drive directory
-	mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+    // Create drive directory
+    mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
-	// Create file map
-	if(DBG) cout << "Creating file map file\n";
-	ofstream filemap(path + string("/FILE_MAP"), ios::out);
-	filemap.close();
+    // Create file map
+    if(DBG) cout << "Creating file map file\n";
+    ofstream filemap(path + string("/FILE_MAP"), ios::out);
+    filemap.close();
 
-	// Create checkpoint region file
-	if(DBG) cout << "Creating checkpoint region file\n";
-	ofstream checkpoint(path + string("/CHECKPOINT_REGION"), ios::out);
-	checkpoint.seekp(192-1);
-	checkpoint.write("", 1);
-	checkpoint.close();
+    // Create checkpoint region file
+    if(DBG) cout << "Creating checkpoint region file\n";
+    ofstream checkpoint(path + string("/CHECKPOINT_REGION"), ios::out);
+    checkpoint.seekp(192-1);
+    checkpoint.write("", 1);
+    checkpoint.close();
 
-	// Create segment files
-	path += "/SEGMENT";
-	for(int i = 0; i < 32; i++){
-		if(DBG) cout << "Creating segment file " << i + 1 << "\n";
-		ofstream segment(path + to_string(i+1), ios::out);
-		segment.seekp(SEG_SZ-1);
-		segment.write("", 1);
-		segment.close();
-	}
-	
-	return 0;
+    // Create segment files
+    path += "/SEGMENT";
+    for(int i = 0; i < 32; i++){
+        if(DBG) cout << "Creating segment file " << i + 1 << "\n";
+        ofstream segment(path + to_string(i+1), ios::out);
+        segment.seekp(SEG_SZ-1);
+        segment.write("", 1);
+        segment.close();
+    }
+
+    return 0;
 }
 
 #include "classes.cpp"
