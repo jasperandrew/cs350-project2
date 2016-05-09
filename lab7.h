@@ -36,7 +36,7 @@ class Block {
         string getFilename();
         void addPtr(char n);
         int getNumPtrs();
-        bool addInodeNum(char n);
+        bool addInodeNum(unsigned int n);
         void setInodeNum(char oldNum, char newNum);
         int getInodeNum(int idx);
         void addSegEntry(char n, char m);
@@ -120,9 +120,12 @@ int import(string filepath, string lfs_filename)
         iMapList[wbuffer.getInodeCounter(1)] = wbuffer.getNumBlocks();
         pair<int,string> tmpPair(wbuffer.getNumBlocks(),inode_block.getFilename());
         fileMap.push_back(tmpPair);
-        Block tmp = wbuffer.createMapBlock();
-        wbuffer.addBlock(tmp);
-        if(tmp.dataFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = wbuffer.getNumBlocks();
+        Block imap_tmp = wbuffer.createMapBlock();
+        wbuffer.addBlock(imap_tmp);
+        if(imap_tmp.dataFull()){
+            Checkpoint_Region.imaps[Checkpoint_Region_counter++] = wbuffer.getNumBlocks();
+            if(DBG) cout<< "Writing imap to checkpoint region\n";
+        }
     }
     else{
       cout<< "File Does Not Exist!\n";

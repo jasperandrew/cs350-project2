@@ -124,7 +124,7 @@ void Block::setInodeNum(char oldNum, char newNum){
 //which can then be modified
 
 
-bool Block::addInodeNum(char n){
+bool Block::addInodeNum(unsigned int n){
 	if(!checkType(2)) return false;
 	data[n] = wbuffer.getNumBlocks();
     int lowestIndex = n/1024;
@@ -164,6 +164,7 @@ void Block::addSegEntry(char n, char m){
 WriteBuffer::WriteBuffer(){
 	num_blocks = 8;
 	seg_counter = 0;
+    inode_counter = 0;
 	Block s(3);
 	for(int i = 0; i < 8; i++) buf[i] = s;
 }
@@ -211,8 +212,8 @@ Block WriteBuffer::createMapBlock()
 {
     Block mapBlock(2);
     int currentIndex  = getInodeCounter(0);
-    //int lowerBound = currentIndex/1024;
     mapBlock.addInodeNum(currentIndex);
+    //^ adds the current (correct?) inode list to this block
     return mapBlock;
 }
 
