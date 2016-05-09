@@ -150,11 +150,18 @@ void remove(string filename)
         if(fileMap[i].second == filename)
         {
             fileMap.erase(fileMap.begin()+i);
+	    if(DBG) cout << " happened in remove\n";
+
         }
+	else
+	  {
+	    cout<<"File Does Not Exist!\n";
+	  }
     }
-
-
+    return;
 }
+
+
 int readInode(int blockNum, string filename)
 {
     int segment = (blockNum/1024) +1;

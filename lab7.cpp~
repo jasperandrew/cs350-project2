@@ -47,10 +47,6 @@ int main(int argc, char **argv)
 	}
       cout<< "Hi There! Please Enter a Command, any text and <Enter> for help, or only press <Enter> to quit:  ";
     }
-          cout << "Exiting...\n";
-	  wbuffer.writeToDisk();
-	  writeCheckpoint();
-	  writeFileMap();
-	  
-	  return 0;
+
+  return 0;
 }
