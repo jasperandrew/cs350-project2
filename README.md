@@ -10,8 +10,11 @@ Authors: Daelin Fischman, Jacob Zwickler, Jasper Andrew
 
 
 ===To Do===
-- write to drive immediately following import or create buffer
-- write to drive on a quit <enter> and on <exit>
 - finish imaps, segment summary blocks
+<<<<<<< HEAD
 - fix remove: it's not removing files (maybe just from being listed) 
 - import does not verify a file name
+=======
+- do we want to make in memory data structures for inodes?
+
+>>>>>>> bcb0c34cd7f5aad07a6b841727b18cea2bd3c6ff
