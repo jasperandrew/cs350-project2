@@ -8,7 +8,7 @@ int main(int argc, char **argv)
   //argument parsing
   string command;
   vector<string> args;
-  cout<< "Hi There! Please Enter a Command or press <Enter> to quit:  ";
+  cout<< "Hi There! Please Enter a Command, any text and <Enter> for help, or only press <Enter> to quit:  ";
   while(getline(cin, command) && !command.empty())
     {
       args.clear();     
@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	  cout << "Exiting...\n";
 	  wbuffer.writeToDisk();
 	  writeCheckpoint();
-    writeFileMap();
+	  writeFileMap();
 	  exit(0);
 	}
       else
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 	  cout << "・list\n";
 	  cout << "・exit\n";
 	}
-      cout<< "Hi There! Please Enter a Command or press <Enter> to quit:  ";
+      cout<< "Hi There! Please Enter a Command, any text and <Enter> for help, or only press <Enter> to quit:  ";
     }
 
   return 0;

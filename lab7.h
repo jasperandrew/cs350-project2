@@ -196,7 +196,7 @@ void list()
 }
 void writeCheckpoint()
 { 
-    ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out | ios::trunc);
+    ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out);
     for(int i = 0; i < 40; i++)
     {
         checkpoint << Checkpoint_Region.imaps[i] << "\n";
@@ -210,7 +210,7 @@ void writeCheckpoint()
     return;
 }
 
-int initFileMap()
+void  initFileMap()
 {
     string path = "DRIVE/FILE_MAP";
     ifstream f(path.c_str());
@@ -230,7 +230,7 @@ int initFileMap()
             fileMap.push_back(tmp);
         }
         if(DBG){ cout << "File map exists\n";}
-        return 1;
+        //return 1;
     }
     else{
         FILE *fp = fopen(path.c_str(), "w");
@@ -242,6 +242,7 @@ int initFileMap()
         } 
         oFileMap.close();
     }
+    return;
 }
 
 void writeFileMap()
@@ -252,7 +253,7 @@ void writeFileMap()
         oFileMap << fileMap[i].first << "\t" << fileMap[i].second << "\n";
     } 
     oFileMap.close();
-
+    return;
 }
 
 int initDrive()
