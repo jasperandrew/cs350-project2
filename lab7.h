@@ -124,6 +124,9 @@ int import(string filepath, string lfs_filename)
         wbuffer.addBlock(tmp);
         if(tmp.dataFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = wbuffer.getNumBlocks();
     }
+    else{
+      cout<< "File Does Not Exist!\n";
+      }
     return 0;
 }
 
