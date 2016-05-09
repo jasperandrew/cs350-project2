@@ -149,9 +149,8 @@ void remove(string filename)
             fileMap.erase(fileMap.begin()+i);
         }
     }
-
-
 }
+
 int readInode(int blockNum, string filename)
 {
     int segment = (blockNum/1024) +1;
@@ -191,11 +190,11 @@ void list()
     {
         cout<< fileMap[i].second<< "\n";
         cout << readInode(fileMap[i].first, fileMap[i].second) << "\n";
-
     }
 }
+
 void writeCheckpoint()
-{ 
+{
     ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out);
     for(int i = 0; i < 40; i++)
     {
@@ -210,7 +209,7 @@ void writeCheckpoint()
     return;
 }
 
-void  initFileMap()
+void initFileMap()
 {
     string path = "DRIVE/FILE_MAP";
     ifstream f(path.c_str());

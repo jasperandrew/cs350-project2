@@ -80,12 +80,6 @@ void Block::setFilename(string f){
 	filename = f;
 }
 
-bool Block::dataFull(){
-	if(!checkType(2)) return false;
-	if (data[1023]) return true;
-	return false;
-}
-
 string Block::getFilename(){
 	if(!checkType(1)) return (string)NULL;
 	return filename;
@@ -116,7 +110,11 @@ void Block::setInodeNum(char oldNum, char newNum){
 	if(DBG) cout << "inode number not found.\n";
 }
 
-
+bool Block::dataFull(){
+	if(!checkType(2)) return false;
+	if(data[1023]) return true;
+	return false;
+}
 
 
 //include function getImap(Block *)
@@ -141,14 +139,7 @@ int Block::getInodeNum(int idx){
 	return data[idx];
 }
 
-// ---------------- Checkpoint ---------------------- //
-
-
-
-
 // ---------------- segment summary ---------------- //
-
-
 
 //add global variable? to store the 8 segInfo blocks
 //
