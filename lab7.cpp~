@@ -22,7 +22,12 @@ int main(int argc, char **argv)
       else if(args[0] == "remove" && args.size() == 2)
 	{
 	  cout << "Removing: " <<  args[1] << "\n";
+<<<<<<< HEAD
           remove(args[1]);
+=======
+      remove(args[1]);
+          
+>>>>>>> b28f887cde180fd944812a2732d86991ac871fb5
 	}
       else if(args[0] == "list" && args.size() == 1)
 	{
@@ -47,6 +52,10 @@ int main(int argc, char **argv)
 	}
       cout<< "Hi There! Please Enter a Command, any text and <Enter> for help, or only press <Enter> to quit:  ";
     }
-
-  return 0;
+          cout << "Exiting...\n";
+	  wbuffer.writeToDisk();
+	  writeCheckpoint();
+	  writeFileMap();
+	  
+	  return 0;
 }
