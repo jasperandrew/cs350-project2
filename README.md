@@ -13,4 +13,5 @@ Authors: Daelin Fischman, Jacob Zwickler, Jasper Andrew
 - write to drive immediately following import or create buffer
 - write to drive on a quit <enter> and on <exit>
 - finish imaps, segment summary blocks
+- do we want to make in memory data structures for inodes?
 

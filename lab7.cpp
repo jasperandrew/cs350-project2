@@ -22,6 +22,7 @@ int main(int argc, char **argv)
       else if(args[0] == "remove" && args.size() == 2)
 	{
 	  cout << "Removing: " <<  args[1] << "\n";
+      remove(args[1]);
           
 	}
       else if(args[0] == "list" && args.size() == 1)
