@@ -77,7 +77,7 @@ vector<pair<int, string>> fileMap;
 struct Checkpoint_Region
 {
     unsigned int imaps[40];
-    char liveBits[32];
+    int liveBits[32];
 }Checkpoint_Region;
 
 int iMapList[10240];
@@ -91,8 +91,47 @@ int Checkpoint_Region_counter = 0;
 
 //----------CheckPoint------------------//                                                                                 
 
+
+void getCheckPoint()
+{
+    ifstream checkpoint("DRIVE/CHECKPOINT_REGION");
+    string line;
+    int counter = 0;
+    char value = 0;
+    unsigned int valueI = 0;
+    while(getline(checkpoint,line))
+    {
+        counter++;
+        if(counter < 41)
+        {
+            stringstream s(line);
+            s >> valueI; 
+            Checkpoint_Region.imaps[counter] = valueI;
+        }
+        else
+        {
+            stringstream s(line);
+            s >> value; 
+            Checkpoint_Region.liveBits[counter-41] = value;
+        }
+    }/*
+    for(int i = 0; i < 32; i++)
+    {
+        cout << "Segment " << i+1 << " has value: " << (char)Checkpoint_Region.liveBits[i]<< "\n";
+    }*/ 
+    checkpoint.close();
+}
+
 void checkPointInit()
 {
+    ifstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::in);
+    if(checkpoint.get() != 0)
+    {
+        cout << "reading checkpoint \n";
+         getCheckPoint();
+         checkpoint.close();
+        return; 
+    }
   for(unsigned int imap: Checkpoint_Region.imaps)
     {
       imap = 0;
@@ -106,24 +145,19 @@ void checkPointInit()
 
 void writeCheckpoint()
 {
-  ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out | ios::trunc);
-  if(checkpoint)
+  ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out);
+  for(int i = 0; i < 40; i++)
     {
-      for(int i = 0; i < 40; i++)
-        {
-          checkpoint << Checkpoint_Region.imaps[i] << "\n";
-        }
+      checkpoint << Checkpoint_Region.imaps[i] << "\n";
+    }
 
-      for(int k = 0; k < 32; k++)
-        {
-          checkpoint << (int)Checkpoint_Region.liveBits[k] << "\n";
-        }
+  for(int k = 0; k < 32; k++)
+    {
+      checkpoint << (char)Checkpoint_Region.liveBits[k] << "\n";
     }
   checkpoint.close();
   return;
 }
-
-
 
 //---------------------------------------//  
 
@@ -172,64 +206,7 @@ int import(string filepath, string lfs_filename)
 
 
 
-void getCheckPoint()
-{
-    ifstream checkpoint("DRIVE/CHECKPOINT_REGION");
-    string line;
-    int counter = 0;
-    while(getline(checkpoint,line))
-    {
-        stringstream s(line);
-        int value = 0;
-        s >> value; 
-        if(counter < 40)
-        {
-            Checkpoint_Region.imaps[counter] = value;
-        }
-        else
-        {
-            Checkpoint_Region.liveBits[counter-40] = value;
-        }
-    }
-    checkpoint.close();
-}
 
-void checkPointInit()
-{
-    ifstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::in);
-    if(checkpoint.get() != 0)
-    {
-        cout << "reading checkpoint \n";
-         getCheckPoint();
-         checkpoint.close();
-        return; 
-    }
-  for(unsigned int imap: Checkpoint_Region.imaps)
-    {
-      imap = 0;
-    }
-  for(char liveBit: Checkpoint_Region.liveBits)
-    {
-      liveBit = 0;
-    }
-  return;
-}
-
-void writeCheckpoint()
-{
-  ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out);
-  for(int i = 0; i < 40; i++)
-    {
-      checkpoint << Checkpoint_Region.imaps[i] << "\n";
-    }
-
-  for(int k = 0; k < 32; k++)
-    {
-      checkpoint << (int)Checkpoint_Region.liveBits[k] << "\n";
-    }
-  checkpoint.close();
-  return;
-}
 
 
 
@@ -252,7 +229,7 @@ void remove(string filename)
     }
   return;
 }
-
+/*
 int readInode(int block_num, string filename)
 {
   int seg_idx = block_num/1024;
@@ -288,7 +265,7 @@ int readInode(int block_num, string filename)
   return size;
 
 }
-
+*/
 
 
 void list()
@@ -296,7 +273,7 @@ void list()
     for(int i = 0; i < fileMap.size();i++)
     {
         cout<< fileMap[i].second<< "\n";
-        cout << readInode(fileMap[i].first, fileMap[i].second) << "\n";
+        //cout << readInode(fileMap[i].first, fileMap[i].second) << "\n";
     }
     return;
 }
