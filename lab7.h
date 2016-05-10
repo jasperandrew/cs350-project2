@@ -136,15 +136,31 @@ int import(string filepath, string lfs_filename)
 
 void checkPointInit()
 {
-	for(unsigned int imap: Checkpoint_Region.imaps)
-	{
-		imap = 0;
-	}
-	for(char liveBit: Checkpoint_Region.liveBits)
-	{
-		liveBit = 0;
-	}
-	return;
+  for(unsigned int imap: Checkpoint_Region.imaps)
+    {
+      imap = 0;
+    }
+  for(char liveBit: Checkpoint_Region.liveBits)
+    {
+      liveBit = 0;
+    }
+  return;
+}
+
+void writeCheckpoint()
+{
+  ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out);
+  for(int i = 0; i < 40; i++)
+    {
+      checkpoint << Checkpoint_Region.imaps[i] << "\n";
+    }
+
+  for(int k = 0; k < 32; k++)
+    {
+      checkpoint << (int)Checkpoint_Region.liveBits[k] << "\n";
+    }
+  checkpoint.close();
+  return;
 }
 
 
@@ -153,19 +169,19 @@ void checkPointInit()
 
 void remove(string filename)
 {
-	for(int i = 0; i < fileMap.size(); i++)
+  for(int i = 0; i < fileMap.size(); i++)
+    {
+      if(fileMap[i].second == filename)
 	{
-		if(fileMap[i].second == filename)
-		{
-			fileMap.erase(fileMap.begin()+i);
-			if(DBG) cout << " happened in remove\n";
-		}
-		else
-		{
-			cout<<"File Does Not Exist!\n";
-		}
+	  fileMap.erase(fileMap.begin()+i);
+	  if(DBG) cout << " happened in remove\n";
 	}
-	return;
+      else
+	{
+	  cout<<"File Does Not Exist!\n";
+	}
+    }
+  return;
 }
 
 int readInode(int blockNum, string filename)
@@ -211,21 +227,6 @@ void list()
     return;
 }
 
-void writeCheckpoint()
-{
-    ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out);
-    for(int i = 0; i < 40; i++)
-    {
-        checkpoint << Checkpoint_Region.imaps[i] << "\n";
-    }
-
-    for(int k = 0; k < 32; k++)
-    {
-        checkpoint << (int)Checkpoint_Region.liveBits[k] << "\n";
-    }
-    checkpoint.close();
-    return;
-}
 
 void initFileMap()
 {
