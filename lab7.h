@@ -5,9 +5,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
-
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -75,7 +72,7 @@ class WriteBuffer {
 // ============================GLOBAL VARIABLES============================== //
 
 WriteBuffer wbuffer;
-vector<pair<int, string> > fileMap;
+vector<pair<int, string>> fileMap;
 
 struct Checkpoint_Region
 {
@@ -186,43 +183,46 @@ void remove(string filename)
 	}
       else
 	{
-	  cout<<"File Does Not Exist!\n";
+	  cout << "File Does Not Exist!\n";
 	}
     }
   return;
 }
 
-int readInode(int blockNum, string filename)
+int readInode(int block_num, string filename)
 {
-    int segment = (blockNum/1024) +1;
-    char tmpBuf[100];
-    sprintf(tmpBuf, "DRIVE/SEGMENT%d", segment);
-    ifstream f(tmpBuf);
-    char tmp = -1;
-    string tmp_file_name = "";
-    string tmp_size = "";
-    int size = -1;
-    while(f.get(tmp)){
-      //f.get(tmp);
-        if(tmp == -1){
-            while(f.get(tmp) && tmp != -1)
-            {
-	      tmp_file_name += tmp;
-		if(DBG) cout << "read  while loop \n";
-            }
-            if(tmp_file_name == filename)
-            {
-                while(f.get(tmp) && tmp != -1)
-                {
-                    tmp_size.insert(tmp_size.end(),tmp);
-                }
-                size = stoi(tmp_size,nullptr,10);
-		//if(DBG) cout << "worked";
-            }
-        }
+  int seg_idx = block_num/1024;
+  int seg_block = block_num % 1024;
+	
+  string seg_path = "DRIVE/SEGMENT" + to_string(seg_idx+1);
+  cout << seg_path << " " << seg_block << endl;
+  ifstream segment(seg_path, ios::in | ios::binary);
+  segment.seekg(seg_block);
+	
+  string inode_name = "";
+	
+  string tmp_size;
+  int size = -1;
+  while(f){
+    f.get(tmp);
+    if(tmp == -1){
+      while(f.get(tmp) && tmp != -1)
+	{
+	  tmp_file_name.insert(tmp_file_name.end(),tmp);
+	}
+      if(tmp_file_name == filename)
+	{
+	  while(f.get(tmp) && tmp != -1)
+	    {
+	      tmp_size.insert(tmp_size.end(),tmp);
+	    }
+	  size = stoi(tmp_size,nullptr,10);
+	}
     }
-    f.close();
-    return size;
+  }
+  f.close();
+  return size;
+
 }
 
 
