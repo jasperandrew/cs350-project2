@@ -83,7 +83,7 @@ struct Checkpoint_Region
     char liveBits[32];
 }Checkpoint_Region;
 
-int iMapList[40960];
+int iMapList[10240];
 int Checkpoint_Region_counter = 0;
 
 
@@ -136,7 +136,7 @@ int import(string filepath, string lfs_filename)
 	ifstream input_file(filepath, ios::in | ios::ate | ios::binary);
 	if(input_file){
 		int file_len = input_file.tellg();
-
+		int imapCounter = 0;
 		Block inode_block(1);
 		inode_block.setSize(file_len);
 		inode_block.setFilename(lfs_filename);
@@ -155,7 +155,9 @@ int import(string filepath, string lfs_filename)
 		}
 
 		wbuffer.addBlock(inode_block);
-		iMapList[wbuffer.getInodeCounter(1)] = wbuffer.getNumBlocks();
+		iMapList[imapCounter] = (wbuffer.getInodeCounter(1)+ (wbuffer.getSegCtr() * 10240));
+		if(DBG) cout << iMapList[imapCounter];
+		imapCounter++;
 		pair<int,string> tmpPair(wbuffer.getNumBlocks(),inode_block.getFilename());
 		fileMap.push_back(tmpPair);
 		Block tmp = wbuffer.createMapBlock();
