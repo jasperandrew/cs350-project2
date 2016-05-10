@@ -130,6 +130,9 @@ int import(string filepath, string lfs_filename)
     return 0;
 }
 
+
+//----------CheckPoint------------------//
+
 void checkPointInit()
 {
     for(unsigned int imap: Checkpoint_Region.imaps)
@@ -142,6 +145,10 @@ void checkPointInit()
     }
     return;
 }
+
+
+
+//---------------------------------------//
 
 void remove(string filename)
 {
@@ -203,7 +210,9 @@ void list()
         cout << readInode(fileMap[i].first, fileMap[i].second) << "\n";
 
     }
+    return;
 }
+
 void writeCheckpoint()
 { 
     ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out);
