@@ -9,12 +9,14 @@ Authors: Daelin Fischman, Jacob Zwickler, Jasper Andrew
 - make del:    deletes the DISK directory and all of its contents
 
 
-===To Do===
+=== To Do ===
 - finish imaps, segment summary blocks
-<<<<<<< HEAD
-- fix remove: it's not removing files (maybe just from being listed) 
-- import does not verify a file name
-=======
 - do we want to make in memory data structures for inodes?
+<<<<<<< HEAD
 
->>>>>>> bcb0c34cd7f5aad07a6b841727b18cea2bd3c6ff
+
+=======
+- Checkpoint region, have it write successfully on startup
+- reading in inodes (need imap done)
+- global system data
+>>>>>>> 375ff11010f9fc5ffca734307b1c6b5d0e0824c7
