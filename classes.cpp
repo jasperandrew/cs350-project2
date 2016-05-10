@@ -20,6 +20,8 @@ Block::Block(int t){
 	size = 0;
 	
 	for(int i = 0; i < 1024; i++) data[i] = 0;
+	if(type == 2)
+		for(char c : "this is an imap") data[count++] = c;
 	if(type == 3)
 		for(char c : "segment summary") data[count++] = c;
 }
@@ -43,7 +45,7 @@ char* Block::writeBlock(){
   if(type == 1){
     string size_string;
     int iPtr = 0;
-    data[iPtr++] = -1;
+    //data[iPtr++] = -1;
     for(int i = 0; i < filename.length(); i++) data[iPtr++] = filename[i];
     data[iPtr++] = -1;
     size_string = to_string(size);
@@ -129,7 +131,7 @@ bool Block::addInodeNum(unsigned int n){
     lowestIndex = lowestIndex*1024;
     for(int x = lowestIndex; x < n; x++)
     {
-        data[x-lowestIndex] = iMapList[x];
+        data[x-lowestIndex] = g_imap.list[x];
     }
 	return true;
 }
@@ -155,7 +157,7 @@ void Block::addSegEntry(char n, char m){
 WriteBuffer::WriteBuffer(){
 	num_blocks = 8;
 	seg_counter = 0;
-    inode_counter = 0;
+	inode_counter = 0;
 	Block s(3);
 	for(int i = 0; i < 8; i++) buf[i] = s;
 }
@@ -190,22 +192,15 @@ void WriteBuffer::writeToDisk(){
 	seg_counter++;
 }
 
-int WriteBuffer::getInodeCounter(int increment){
-    int ret = inode_counter;
-    inode_counter += increment;
-    return ret;
-}
 int WriteBuffer::getNumBlocks(){
 	return num_blocks;
 }
 
-Block WriteBuffer::createMapBlock()
+Block WriteBuffer::createImapBlock()
 {
-    Block mapBlock(2);
-    int currentIndex  = getInodeCounter(0);
-    mapBlock.addInodeNum(currentIndex);
-    //^ adds the current (correct?) inode list to this block
-    return mapBlock;
+    Block imap_block(2);
+    //imap_block.addInodeNum(currentIndex); // DO THIS
+    return imap_block;
 }
 
 Block WriteBuffer::getBlock(int idx){

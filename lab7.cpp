@@ -11,8 +11,8 @@ vector<string> &split(const string &s, char delim, vector<string> &elems) {
 
 int main(int argc, char **argv)
 {
-	cout << "Greetings, [INSERT_SUBJECT_NAME_HERE]!\n";
-	        "Welcome to the Log-Indexed File Emulator, or L.I.F.E.\n";
+	cout << "Greetings, [INSERT_SUBJECT_NAME_HERE]!\n"
+	        "Welcome to the Log-Indexed File Emulator, or L.I.F.E.\n"
 	        "Wait just a moment while we set up a few things...\n\n";
 	
 	initDrive();
