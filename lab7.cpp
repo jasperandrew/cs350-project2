@@ -2,57 +2,101 @@
 
 int main(int argc, char **argv)
 {
-  initDrive();
-  initFileMap();
-  checkPointInit();
-  //argument parsing
+	cout << "Greetings, [INSERT_SUBJECT_NAME_HERE]!\n";
+	        "Welcome to the Log-Indexed File Emulator, or L.I.F.E.\n";
+	        "Wait just a moment while we set up a few things...\n\n";
+	
+	initDrive();
+	initFileMap();
+	checkPointInit();
+
+	cout << "\nDone! Now it's time for you to grab L.I.F.E. by the horns!\n"
+	        "Enter a command, or enter 'help' for usage information.\n"
+	        "\n{epic prompt} ";
+
   string command;
   vector<string> args;
-  cout<< "Hi There! Please Enter a Command, any text and <Enter> for help, or only press <Enter> to quit: ";
-  while(getline(cin, command) && !command.empty())
-    {
-      args.clear();
-      boost::algorithm::split(args, command, boost::algorithm::is_any_of(" "));
-      if(args[0] == "import" && args.size() == 3) 
+  while(getline(cin, command))
 	{
-	  cout << "importing [" <<  args[1] <<"] with filename '" << args[2]<< "'\n";
-	  import(args[1], args[2]);                                                 
+		args.clear();
+		boost::algorithm::split(args, command, boost::algorithm::is_any_of(" "));
+		if(!command.empty()){
+			if(args[0] == "import" && args.size() == 3) 
+			{
+				cout << "Importing [" << args[1] << "] with filename '" << args[2]<< "'\n";
+				import(args[1], args[2]);                                                 
+			}
+			else if(args[0] == "remove" && args.size() == 2)
+			{
+				cout << "Removing: " << args[1] << "\n";
+				remove(args[1]);
+			}
+			else if(args[0] == "list" && args.size() == 1)
+			{
+				cout << "Listing all files...\n";
+				list();
+			}
+			else if(args[0] == "exit" && args.size() == 1)
+			{
+				cout << "Getting L.I.F.E. together...\n\n";
+				wbuffer.writeToDisk();
+				writeCheckpoint();
+				writeFileMap();
+				cout << "\nQuitting L.I.F.E.\n\u0CA0_\u0CA0\n";
+				exit(0);
+			}
+			else if(args[0] == "help")
+			{
+				if(args.size() == 1){
+					cout << "Thanks for calling L.I.F.E. help.\nHeaven knows we all need it from time to time.\nValid L.I.F.E. commands:\n"
+									"\timport <filename> <lfs_filename>\n"
+									"\tremove <lfs_filename>\n"
+									"\tlist\n"
+									"\texit\n"
+									"For more details on a command, enter 'help <command>'.\n";
+				}else if(args.size() == 2){
+					if(args[1] == "import"){
+						cout << "Usage: import <filepath> <lfs_filename>\n"
+						        "Info:  Imports a file from a filepath to the DRIVE, using the given filename.\n";
+					}
+					else if(args[1] == "remove"){
+						cout << "Usage: remove <lfs_filename>\n"
+						        "Info:  Removes a file from the DRIVE.\n";
+					}
+					else if(args[1] == "list"){
+						cout << "Usage: list\n"
+						        "Info:  Lists the names and sizes of all files currently in the DRIVE.\n";
+					}
+					else if(args[1] == "exit"){
+						cout << "Usage: exit\n"
+						        "Info:  C'mon bro. Take a good guess.\n";
+					}
+					else if(args[1] == "help"){
+						cout << "Usage: help <command>\n"
+						        "Info:  Prints usage info for all commands, and optionally prints specific info for one command.\n";
+					}else if(args[1] == "me"){
+						cout << "You're not alone; many of us have had suicidal thoughts at some point in our lives. "
+						        "Feeling suicidal is not a character defect, and it doesn't mean that you are crazy, or weak, or flawed. "
+										"It only means that you have more pain than you can cope with right now. "
+										"This pain seems overwhelming and permanent at the moment. "
+										"But with time and support, you can overcome your problems and the pain and suicidal feelings will pass.\n"
+										"If you’re feeling suicidal right now, please call for help!\n\n"
+										"Call 1-800-273-TALK in the U.S.\n"
+										"Or visit IASP(http://www.iasp.info/resources/Crisis_Centres) to find a helpline in your country. "
+										"Alternatively, talk to someone you trust and let them know how bad things are.\n";
+					}else{
+						cout << "'" << args[1] << "' is not a command... Take your funny business elsewhere. This is a serious, real-world program.\n";
+					}
+				}else{
+					cout << "Hey, don't get too crazy, now.\n";
+				}
+			}
+			else
+			{
+				cout << "Invalid command and/or parameters. Enter 'help' for...y'know...help.\n";
+			}
+		}
+		cout << "\n{epic prompt} ";
 	}
-
-      else if(args[0] == "remove" && args.size() == 2)
-	{
-	  cout << "Removing: " <<  args[1] << "\n";
-
-      remove(args[1]);
-          
-	}
-      else if(args[0] == "list" && args.size() == 1)
-	{
-	  cout << "Listing all files...\n";
-      list();
-	}
-      else if(args[0] == "exit" && args.size() == 1)
-	{
-	  cout << "Exiting...\n";
-	  wbuffer.writeToDisk();
-	  writeCheckpoint();
-	  writeFileMap();
-	  exit(0);
-	}
-      else
-	{
-	  cout << "[Error]  You need to enter one of the following commands with correct parameters! \n";
-	  cout << "・import <filename> <lfs_filename>\n";
-	  cout << "・remove <lfs_filename>\n";
-	  cout << "・list\n";
-	  cout << "・exit\n";
-	}
-      cout<< "Hi There! Please Enter a Command, any text and <Enter> for help, or only press <Enter> to quit:  ";
-    }
-          cout << "Exiting...\n";
-	  wbuffer.writeToDisk();
-	  writeCheckpoint();
-	  writeFileMap();
-	  
-	  return 0;
+	return 0;
 }

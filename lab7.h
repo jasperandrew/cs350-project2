@@ -8,7 +8,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-
 #include <iostream>
 #include <fstream>
 #include <string>
