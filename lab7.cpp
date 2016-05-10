@@ -1,5 +1,14 @@
 #include "lab7.h"
 
+vector<string> &split(const string &s, char delim, vector<string> &elems) {
+    stringstream ss(s);
+    string item;
+    while(getline(ss, item, delim)){
+        elems.push_back(item);
+    }
+    return elems;
+}
+
 int main(int argc, char **argv)
 {
 	cout << "Greetings, [INSERT_SUBJECT_NAME_HERE]!\n";
@@ -19,24 +28,24 @@ int main(int argc, char **argv)
   while(getline(cin, command))
 	{
 		args.clear();
-		boost::algorithm::split(args, command, boost::algorithm::is_any_of(" "));
+		split(command, ' ', args);
 		if(!command.empty()){
-			if(args[0] == "import" && args.size() == 3) 
+			if((args[0] == "import" || args[0] == "i") && args.size() == 3) 
 			{
-				cout << "Importing [" << args[1] << "] with filename '" << args[2]<< "'\n";
+				cout << "Importing file '" << args[2] << "' from " << args[1]<< "\n";
 				import(args[1], args[2]);                                                 
 			}
-			else if(args[0] == "remove" && args.size() == 2)
+			else if((args[0] == "remove" || args[0] == "r") && args.size() == 2)
 			{
 				cout << "Removing: " << args[1] << "\n";
 				remove(args[1]);
 			}
-			else if(args[0] == "list" && args.size() == 1)
+			else if((args[0] == "list" || args[0] == "l") && args.size() == 1)
 			{
 				cout << "Listing all files...\n";
 				list();
 			}
-			else if(args[0] == "exit" && args.size() == 1)
+			else if((args[0] == "exit" || args[0] == "q") && args.size() == 1)
 			{
 				cout << "Getting L.I.F.E. together...\n\n";
 				wbuffer.writeToDisk();
@@ -45,7 +54,7 @@ int main(int argc, char **argv)
 				cout << "\nQuitting L.I.F.E.\n\u0CA0_\u0CA0\n";
 				exit(0);
 			}
-			else if(args[0] == "help")
+			else if((args[0] == "help" || args[0] == "h"))
 			{
 				if(args.size() == 1){
 					cout << "Thanks for calling L.I.F.E. help.\nHeaven knows we all need it from time to time.\nValid L.I.F.E. commands:\n"
