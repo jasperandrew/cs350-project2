@@ -91,7 +91,46 @@ int Checkpoint_Region_counter = 0;
 
 // ============================ FUNCTIONS ============================ //
 //
-//
+
+
+//----------CheckPoint------------------//                                                                                 
+
+void checkPointInit()
+{
+  for(unsigned int imap: Checkpoint_Region.imaps)
+    {
+      imap = 0;
+    }
+  for(char liveBit: Checkpoint_Region.liveBits)
+    {
+      liveBit = 0;
+    }
+  return;
+}
+
+void writeCheckpoint()
+{
+  ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out | ios::trunc);
+  if(checkpoint)
+    {
+      for(int i = 0; i < 40; i++)
+        {
+          checkpoint << Checkpoint_Region.imaps[i] << "\n";
+        }
+
+      for(int k = 0; k < 32; k++)
+        {
+          checkpoint << (int)Checkpoint_Region.liveBits[k] << "\n";
+        }
+    }
+  checkpoint.close();
+  return;
+}
+
+
+
+//---------------------------------------//  
+
 // Need to write to disc after every import
 int import(string filepath, string lfs_filename)
 {
@@ -123,6 +162,7 @@ int import(string filepath, string lfs_filename)
 		Block tmp = wbuffer.createMapBlock();
 		wbuffer.addBlock(tmp);
 		if(tmp.dataFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = wbuffer.getNumBlocks();
+		else writeCheckpoint();
 	}
 	else
 	{
@@ -132,40 +172,7 @@ int import(string filepath, string lfs_filename)
 }
 
 
-//----------CheckPoint------------------//
 
-void checkPointInit()
-{
-  for(unsigned int imap: Checkpoint_Region.imaps)
-    {
-      imap = 0;
-    }
-  for(char liveBit: Checkpoint_Region.liveBits)
-    {
-      liveBit = 0;
-    }
-  return;
-}
-
-void writeCheckpoint()
-{
-  ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out);
-  for(int i = 0; i < 40; i++)
-    {
-      checkpoint << Checkpoint_Region.imaps[i] << "\n";
-    }
-
-  for(int k = 0; k < 32; k++)
-    {
-      checkpoint << (int)Checkpoint_Region.liveBits[k] << "\n";
-    }
-  checkpoint.close();
-  return;
-}
-
-
-
-//---------------------------------------//
 
 void remove(string filename)
 {
@@ -190,16 +197,17 @@ int readInode(int blockNum, string filename)
     char tmpBuf[100];
     sprintf(tmpBuf, "DRIVE/SEGMENT%d", segment);
     ifstream f(tmpBuf);
-    char tmp;
-    string tmp_file_name;
-    string tmp_size;
+    char tmp = -1;
+    string tmp_file_name = "";
+    string tmp_size = "";
     int size = -1;
-    while(f){
-        f.get(tmp);
+    while(f.get(tmp)){
+      //f.get(tmp);
         if(tmp == -1){
             while(f.get(tmp) && tmp != -1)
             {
-                tmp_file_name.insert(tmp_file_name.end(),tmp);
+	      tmp_file_name += tmp;
+		if(DBG) cout << "read  while loop \n";
             }
             if(tmp_file_name == filename)
             {
@@ -208,6 +216,7 @@ int readInode(int blockNum, string filename)
                     tmp_size.insert(tmp_size.end(),tmp);
                 }
                 size = stoi(tmp_size,nullptr,10);
+		//if(DBG) cout << "worked";
             }
         }
     }
