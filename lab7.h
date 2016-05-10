@@ -133,8 +133,38 @@ int import(string filepath, string lfs_filename)
 
 //----------CheckPoint------------------//
 
+void getCheckPoint()
+{
+    ifstream checkpoint("DRIVE/CHECKPOINT_REGION");
+    string line;
+    int counter = 0;
+    while(getline(checkpoint,line))
+    {
+        stringstream s(line);
+        int value = 0;
+        s >> value; 
+        if(counter < 40)
+        {
+            Checkpoint_Region.imaps[counter] = value;
+        }
+        else
+        {
+            Checkpoint_Region.liveBits[counter-40] = value;
+        }
+    }
+    checkpoint.close();
+}
+
 void checkPointInit()
 {
+    ifstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::in);
+    if(checkpoint.get() != 0)
+    {
+        cout << "reading checkpoint \n";
+         getCheckPoint();
+         checkpoint.close();
+        return; 
+    }
   for(unsigned int imap: Checkpoint_Region.imaps)
     {
       imap = 0;

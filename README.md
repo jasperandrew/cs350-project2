@@ -12,4 +12,5 @@ Authors: Daelin Fischman, Jacob Zwickler, Jasper Andrew
 ===To Do===
 - finish imaps, segment summary blocks
 - do we want to make in memory data structures for inodes?
+- Checkpoint region, have it write successfully on startup
 
