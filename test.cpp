@@ -4,7 +4,7 @@ int main(int argc, char **argv)
 {
 	int reload = initDrive();
 	
-	import("test_file.txt", "bobby");
+	import("test_file.txt", "kajsndk");
 	wbuffer.writeToDisk();
 	
 	ifstream segment1("DRIVE/SEGMENT1", ios::in | ios::binary);

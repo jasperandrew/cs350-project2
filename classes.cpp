@@ -80,12 +80,6 @@ void Block::setFilename(string f){
 	filename = f;
 }
 
-bool Block::dataFull(){
-	if(!checkType(2)) return false;
-	if (data[1023]) return true;
-	return false;
-}
-
 string Block::getFilename(){
 	if(!checkType(1)) return (string)NULL;
 	return filename;
@@ -116,7 +110,11 @@ void Block::setInodeNum(char oldNum, char newNum){
 	if(DBG) cout << "inode number not found.\n";
 }
 
-
+bool Block::dataFull(){
+	if(!checkType(2)) return false;
+	if(data[1023]) return true;
+	return false;
+}
 
 
 //include function getImap(Block *)
@@ -124,7 +122,7 @@ void Block::setInodeNum(char oldNum, char newNum){
 //which can then be modified
 
 
-bool Block::addInodeNum(char n){
+bool Block::addInodeNum(unsigned int n){
 	if(!checkType(2)) return false;
 	data[n] = wbuffer.getNumBlocks();
     int lowestIndex = n/1024;
@@ -141,14 +139,7 @@ int Block::getInodeNum(int idx){
 	return data[idx];
 }
 
-// ---------------- Checkpoint ---------------------- //
-
-
-
-
 // ---------------- segment summary ---------------- //
-
-
 
 //add global variable? to store the 8 segInfo blocks
 //
@@ -164,6 +155,7 @@ void Block::addSegEntry(char n, char m){
 WriteBuffer::WriteBuffer(){
 	num_blocks = 8;
 	seg_counter = 0;
+    inode_counter = 0;
 	Block s(3);
 	for(int i = 0; i < 8; i++) buf[i] = s;
 }
@@ -211,8 +203,8 @@ Block WriteBuffer::createMapBlock()
 {
     Block mapBlock(2);
     int currentIndex  = getInodeCounter(0);
-    //int lowerBound = currentIndex/1024;
     mapBlock.addInodeNum(currentIndex);
+    //^ adds the current (correct?) inode list to this block
     return mapBlock;
 }
 

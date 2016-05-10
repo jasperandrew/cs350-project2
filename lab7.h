@@ -36,7 +36,7 @@ class Block {
         string getFilename();
         void addPtr(char n);
         int getNumPtrs();
-        bool addInodeNum(char n);
+        bool addInodeNum(unsigned int n);
         void setInodeNum(char oldNum, char newNum);
         int getInodeNum(int idx);
         void addSegEntry(char n, char m);
@@ -95,39 +95,40 @@ int Checkpoint_Region_counter = 0;
 // Need to write to disc after every import
 int import(string filepath, string lfs_filename)
 {
-    ifstream input_file(filepath, ios::in | ios::ate | ios::binary);
-    if(input_file){
-        int file_len = input_file.tellg();
+	ifstream input_file(filepath, ios::in | ios::ate | ios::binary);
+	if(input_file){
+		int file_len = input_file.tellg();
 
-        Block inode_block(1);
-        inode_block.setSize(file_len);
-        inode_block.setFilename(lfs_filename);
-        //if((1024-wbuffer.getNumBlocks()) <( length+2)) wbuffer.writeToDisk();
-        for(int i = 0; i < file_len; i += BLOCK_SZ){
-            input_file.seekg(i);
-            char tmp_data[BLOCK_SZ] = {0};
-            input_file.read(tmp_data, BLOCK_SZ);
+		Block inode_block(1);
+		inode_block.setSize(file_len);
+		inode_block.setFilename(lfs_filename);
+		//if((1024-wbuffer.getNumBlocks()) <( length+2)) wbuffer.writeToDisk();
+		for(int i = 0; i < file_len; i += BLOCK_SZ){
+			input_file.seekg(i);
+			char tmp_data[BLOCK_SZ] = {0};
+			input_file.read(tmp_data, BLOCK_SZ);
 
-            Block data_block(0);
-            data_block.setData(tmp_data);
+			Block data_block(0);
+			data_block.setData(tmp_data);
 
-            wbuffer.addBlock(data_block);
-            int block_number = BLOCK_SZ * wbuffer.getSegCtr() + wbuffer.getNumBlocks();
-            inode_block.addPtr(block_number);
-        }
+			wbuffer.addBlock(data_block);
+			int block_number = BLOCK_SZ * wbuffer.getSegCtr() + wbuffer.getNumBlocks();
+			inode_block.addPtr(block_number);
+		}
 
-        wbuffer.addBlock(inode_block);
-        iMapList[wbuffer.getInodeCounter(1)] = wbuffer.getNumBlocks();
-        pair<int,string> tmpPair(wbuffer.getNumBlocks(),inode_block.getFilename());
-        fileMap.push_back(tmpPair);
-        Block tmp = wbuffer.createMapBlock();
-        wbuffer.addBlock(tmp);
-        if(tmp.dataFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = wbuffer.getNumBlocks();
-    }
-    else{
-      cout<< "File Does Not Exist!\n";
-      }
-    return 0;
+		wbuffer.addBlock(inode_block);
+		iMapList[wbuffer.getInodeCounter(1)] = wbuffer.getNumBlocks();
+		pair<int,string> tmpPair(wbuffer.getNumBlocks(),inode_block.getFilename());
+		fileMap.push_back(tmpPair);
+		Block tmp = wbuffer.createMapBlock();
+		wbuffer.addBlock(tmp);
+		if(tmp.dataFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = wbuffer.getNumBlocks();
+	}
+	else
+	{
+		cout<< "File Does Not Exist!\n";
+	}
+	return 0;
 }
 
 
@@ -135,15 +136,15 @@ int import(string filepath, string lfs_filename)
 
 void checkPointInit()
 {
-    for(unsigned int imap: Checkpoint_Region.imaps)
-    {
-        imap = 0;
-    }
-    for(char liveBit: Checkpoint_Region.liveBits)
-    {
-        liveBit = 0;
-    }
-    return;
+	for(unsigned int imap: Checkpoint_Region.imaps)
+	{
+		imap = 0;
+	}
+	for(char liveBit: Checkpoint_Region.liveBits)
+	{
+		liveBit = 0;
+	}
+	return;
 }
 
 
@@ -152,22 +153,20 @@ void checkPointInit()
 
 void remove(string filename)
 {
-    for(int i = 0; i < fileMap.size(); i++)
-    {
-        if(fileMap[i].second == filename)
-        {
-            fileMap.erase(fileMap.begin()+i);
-	    if(DBG) cout << " happened in remove\n";
-
-        }
-	else
-	  {
-	    cout<<"File Does Not Exist!\n";
-	  }
-    }
-    return;
+	for(int i = 0; i < fileMap.size(); i++)
+	{
+		if(fileMap[i].second == filename)
+		{
+			fileMap.erase(fileMap.begin()+i);
+			if(DBG) cout << " happened in remove\n";
+		}
+		else
+		{
+			cout<<"File Does Not Exist!\n";
+		}
+	}
+	return;
 }
-
 
 int readInode(int blockNum, string filename)
 {
@@ -208,13 +207,12 @@ void list()
     {
         cout<< fileMap[i].second<< "\n";
         cout << readInode(fileMap[i].first, fileMap[i].second) << "\n";
-
     }
     return;
 }
 
 void writeCheckpoint()
-{ 
+{
     ofstream checkpoint("DRIVE/CHECKPOINT_REGION", ios::out);
     for(int i = 0; i < 40; i++)
     {
@@ -229,7 +227,7 @@ void writeCheckpoint()
     return;
 }
 
-void  initFileMap()
+void initFileMap()
 {
     string path = "DRIVE/FILE_MAP";
     ifstream f(path.c_str());
