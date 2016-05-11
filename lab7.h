@@ -76,7 +76,7 @@ vector<pair<int, string>> g_filemap;
 
 struct Checkpoint_Region{
     unsigned int imaps[40];
-    char liveBits[32];
+    int liveBits[32];
 } Checkpoint_Region;
 
 struct global_imap_s {
@@ -160,7 +160,7 @@ void writeCheckpoint()
 	
 	for(int k = 0; k < 32; k++)
 	{
-		checkpoint << (int)Checkpoint_Region.liveBits[k] << "\n";
+		checkpoint << (char)Checkpoint_Region.liveBits[k] << "\n";
 	}
 	checkpoint.close();
 	return;
@@ -271,7 +271,7 @@ void list()
 	for(int i = 0; i < g_filemap.size();i++)
 	{
 		cout << g_filemap[i].second<< " | ";
-		cout << getFileSize(g_filemap[i].first) << "\n";
+		//cout << getFileSize(g_filemap[i].first) << "\n";
 	}
 	return;
 }
@@ -341,7 +341,7 @@ int initDrive()
 
     // Create checkpoint region file
     if(DBG) cout << "Creating checkpoint region file\n";
-    ofstream checkpoint(path + string("/CHECKPOINT_REGION"), ios::out | ios::binary);
+    ofstream checkpoint(path + string("/CHECKPOINT_REGION"), ios::out );
     checkpoint.seekp(192-1);
     checkpoint.write("", 1);
     checkpoint.close();
