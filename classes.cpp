@@ -70,7 +70,9 @@ Block* WriteBuffer::getBlock(int idx){
 
 //------------imaps---------------------//
 void Block::addToCheckpointRegion(){
-    Checkpoint_Region.imaps[Checkpoint_Region_counter++] = BLOCK_SZ * current_segment + (wbuffer.getNumBlocks()%BLOCK_SZ); 
+    
+    Checkpoint_Region.imaps[Checkpoint_Region_counter++] = (BLOCK_SZ * current_segment)+ wbuffer.getNumBlocks(); 
+    //cout << "checkpoint_region"<< Checkpoint_Region_counter-1<< ": " <<Checkpoint_Region.imaps[Checkpoint_Region_counter-1] <<"\n" ; 
 
 }
 
@@ -79,8 +81,10 @@ void Block::addInodeData(int start_index)
     int iter = start_index;
     for(; iter < start_index+256; iter++)
     {
+        if(g_imap.list[iter] == 0) break;
         block_data[iter-start_index] = g_imap.list[iter];
+        cout <<"input value: " <<g_imap.list[iter] << "\n";
     }
-    addToCheckpointRegion();
     wbuffer.addBlock(this);
+    addToCheckpointRegion();
 }
