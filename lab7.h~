@@ -199,16 +199,7 @@ void overwrite(string filename, string howmany, string start, string c)
 	  blockNum = g_imap.list[g_filemap[i].first];
 	}
     }
-  int seg = (blockNum - (blockNum % BLOCK_SZ))/ BLOCK_SZ;
-  string path = "DRIVE/SEGMENT";
-  ofstream segment(path + to_string(seg), ios::out | ios::binary);
-  for(int i = 0; i< copyNum;i++)
-    {  
-      segment.seekp(sByte + i);
-      segment.write(chr, 1);
-      segment.close();
-    }
-  /*update inode*/
+  /*get inode from file*/
   return;
 }
 
