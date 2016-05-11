@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <string.h>
+#include <limits.h>
 
 #include <iostream>
 #include <cstring>
@@ -31,11 +32,6 @@ typedef struct inode_struct {
     block_num datablocks[MAX_FILE_BLOCKS];
 } inode;
 
-typedef struct segsum_entry_struct {
-    int one;
-    int two;
-} segsum_entry;
-
 // ============================ GLOBAL VARIABLES ============================== //
 /*
    struct sysdata {
@@ -45,6 +41,8 @@ typedef struct segsum_entry_struct {
 char mem_segment[SEG_SZ];
 int mem_segment_idx;
 int current_segment;
+
+char block_buffer[BLOCK_SZ];
 
 vector<pair<int, string>> g_filemap;
 
@@ -73,9 +71,10 @@ class Block {
                 for(int i = 0; i < BLOCK_SZ/4; i++) block_data[i] = 0;
 
             num_blocks = 0;
+						//initInode(&inode_data);
         }
 
-        int getType(){return type;}
+        int getType(){ return type;}
 
         // data
         void setData(char *d){
@@ -84,6 +83,7 @@ class Block {
                 else break;
             }
         }
+				char* getData(){ return data; }
         void writeToSegment(){
             if(type == 0)
                 memcpy(mem_segment+(mem_segment_idx++ * BLOCK_SZ), data, BLOCK_SZ);
@@ -107,15 +107,13 @@ class Block {
                 if(inode_data.datablocks[i] == old_n) inode_data.datablocks[i] = new_n;
         }
         int getNumBlocks(){ return num_blocks; }
+				inode getInode(){ return inode_data; }
 
         // imap
 
         void addInodeData(int start_index);
         void addToCheckpointRegion();
-        block_num * getData()
-        {
-            return block_data;
-        }
+        block_num* getBlockData(){ return block_data; }
         void addInodeBlock(block_num n){
             block_data[num_blocks++] = n; }
         void editInodeBlock(block_num old_n, block_num new_n){
@@ -178,13 +176,12 @@ void readImaps()
 
         }
         int block_number = Checkpoint_Region.imaps[i];
-       // cout << "Recieved imap block num: " << Checkpoint_Region.imaps[i] << "\n";
         int seg_idx = block_number/1024;
         int seg_block = block_number % 1024;
 
         if(seg_idx == current_segment){
             //cout << current_segment<< "\n";
-            transferImap(wbuffer.getBlock(seg_block-1)->getData());
+            transferImap(wbuffer.getBlock(seg_block-1)->getBlockData());
         }else{
             string seg_path = "DRIVE/SEGMENT" + to_string(seg_idx+1);
             FILE * fp;
@@ -193,29 +190,7 @@ void readImaps()
             fseek(fp, (BLOCK_SZ * (seg_block-1)), SEEK_SET);
             fread(tmpB, sizeof(block_num), BLOCK_SZ/4, fp);
             fclose(fp);
-            for(int x = 0; x < 256; x++)
-            {
-                //cout << "tmpB" << x << ": " << tmpB[x] << "\n";
-            }
             transferImap(tmpB);
-            /*
-               ifstream segment(seg_path, ios::in | ios::binary);
-               segment.seekg(BLOCK_SZ * (seg_block-1));
-
-               cout << seg_path << " block: " << seg_block << "\n";
-
-
-               unsigned char tmp[BLOCK_SZ];
-               segment.read(tmp, sizeof(tmp));
-               segment.close();
-            //Block tmp_imap(2);
-
-            block_num tmpB[BLOCK_SZ/4];
-            memcpy(tmpB, tmp, BLOCK_SZ);
-            transferImap(tmpB);
-            */
-            //memcpy(&tmp_imap, tmp, sizeof(Block));
-            //transferImap(tmp_imap.getData())*/
         } 
     }
 }
@@ -289,10 +264,29 @@ void writeCheckpoint()
     return;
 }
 
+void lookForFreeSpots(string lfs_filename)
+{
+    bool found = false;
+    for(int i = 0; i < 10240; i++)
+    {
+        if(g_imap.list[i] == UINT_MAX)
+        {
+            g_filemap.push_back(make_pair(i, lfs_filename));
+            g_imap.list[i] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
+            found = true;
+        }
+    }
+    if(!found) cout << "YER OUTTER SPACE!\n";
+    return;
+}
+
+
+
 // --------------------- import --------------------- //
 int import(string filepath, string lfs_filename)
 {
-    ifstream input_file(filepath, ios::in | ios::ate | ios::binary);
+	cout << "Importing '" << filepath << "' --> " << lfs_filename << "\n";
+   ifstream input_file(filepath, ios::in | ios::ate | ios::binary);
     if(input_file){
         int file_len = input_file.tellg();
         Block *inode_block = new Block(1);
@@ -313,11 +307,15 @@ int import(string filepath, string lfs_filename)
         }
 
         wbuffer.addBlock(inode_block);
-
-        g_filemap.push_back(make_pair(g_imap.idx, lfs_filename));
-
-        //BLOCK_SZ*current_segment + (getNumBlocks%1024)
-        g_imap.list[g_imap.idx++] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks(); 
+        if(g_imap.idx < 10239)
+        {
+            g_filemap.push_back(make_pair(g_imap.idx, lfs_filename));
+            g_imap.list[g_imap.idx++] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
+        }
+        else 
+        {
+            lookForFreeSpots(lfs_filename);
+        }
 
         for(int n : g_imap.list) if(n) cout << n << " "; else break;
 
@@ -334,62 +332,40 @@ int import(string filepath, string lfs_filename)
     return 0;
 }
 
-
-
 // --------------------- remove --------------------- //
 void remove(string filename)
 {
+    bool removed = false;
+    unsigned int remove_block;
     for(int i = 0; i < g_filemap.size(); i++){
         if(g_filemap[i].second == filename){
+            remove_block = g_filemap[i].first;
             g_filemap.erase(g_filemap.begin()+i);
-            if(DBG) cout << " happened in remove\n";
-        }
-        else
-        {
-            cout << "File Does Not Exist!\n";
+            removed = true;
+            if(DBG) cout << "removed " << filename << "\n";
         }
     }
+    if(!removed)
+    {
+        cout << "file does not exist\n";
+        return;
+    }
+    g_imap.list[remove_block] = UINT_MAX;
     return;
 }
-/*
-   int getFileSize(int inode_num)
-   {
-   int block_num = g_imap.list[inode_num];
-   int seg_idx = block_num/1024;
-   int seg_block = block_num % 1024;
-
-   string seg_path = "DRIVE/SEGMENT" + to_string(seg_idx+1);
-   cout << inode_num << " " << seg_path << " " << seg_block << " " << BLOCK_SZ * seg_block << " | ";
-   ifstream segment(seg_path, ios::in | ios::binary);
-   segment.seekg(BLOCK_SZ * seg_block);
-   char tmp[1024] = {0};
-   segment.read(tmp, BLOCK_SZ);
-   cout << tmp; return 0;
-   char c = 0;
-   while(c != -1){
-   segment.get(c);
-   cout << c;
-   }
-   segment.get(c);
-   segment.close();
-   return (int)c;
-   }
-   */
-
-
-
 
 // --------------------- list --------------------- //
 
-int getFileSize(int inode_num)
+inode readInode(int inode_num)
 {
-    int block_num = g_imap.list[inode_num];
-    int seg_idx = block_num/1024;
-    int seg_block = block_num % 1024;
-    int size;
+    int inode_block = g_imap.list[inode_num];
+    int seg_idx = inode_block/BLOCK_SZ;
+    int seg_block = inode_block % BLOCK_SZ;
+		inode tmp_inode;
+		//initInode(&tmp_inode);
 
     if(seg_idx == current_segment){
-        return wbuffer.getBlock(seg_block-1)->getSize();
+        tmp_inode = wbuffer.getBlock(seg_block-1)->getInode();
     }else{
         string seg_path = "DRIVE/SEGMENT" + to_string(seg_idx+1);
         ifstream segment(seg_path, ios::in | ios::binary);
@@ -399,19 +375,35 @@ int getFileSize(int inode_num)
         segment.read(tmp, sizeof(inode));
         segment.close();
 
-        inode tmp_inode;
         memcpy(&tmp_inode, tmp, sizeof(inode));
+		}
+    return tmp_inode;
+}
 
-        return tmp_inode.filesize;
-    }
-    return -1;
+void readData(block_num num)
+{
+		for(int i = 0; i < BLOCK_SZ; i++) block_buffer[i] = 0;
+	
+    int seg_idx = num/BLOCK_SZ;
+    int seg_block = num % BLOCK_SZ;
+
+    if(seg_idx == current_segment){
+        memcpy(block_buffer, wbuffer.getBlock(seg_block-1)->getData(), BLOCK_SZ);
+    }else{
+        string seg_path = "DRIVE/SEGMENT" + to_string(seg_idx+1);
+        ifstream segment(seg_path, ios::in | ios::binary);
+        segment.seekg(BLOCK_SZ * (seg_block-1));
+
+				segment.read(block_buffer, SEG_SZ);
+        segment.close();
+		}
 }
 
 
 
-//----------ovrwrite--------------//
+//----------overwrite--------------//
 void overwrite(string filename, string howmany, string start, string c)
-{
+{/*
   //convert strings args to ints
   int copyNum =  stoi(howmany);
   int sByte = stoi(start);
@@ -491,18 +483,47 @@ void overwrite(string filename, string howmany, string start, string c)
         }
     }
   return;
+	*/
 }
 
 
 // --------------------- list --------------------- //
 void list()
 {
-    for(int i = 0; i < g_filemap.size();i++)
-    {
-        cout << g_filemap[i].second << " (";
-        cout << getFileSize(g_filemap[i].first) << " bytes)\n";
-    }
-    return;
+	cout << "\nFile List\n----------------------------\n";
+	for(int i = 0; i < g_filemap.size();i++){
+		cout << g_filemap[i].second << " (";
+		cout << readInode(g_filemap[i].first).filesize << " bytes)\n";
+	}
+}
+
+int getInodeNum(string filename){
+		for(int i = 0; i < g_filemap.size(); i++){
+			cout << "blah";
+			if(g_filemap[i].second == filename) return 0;//g_filemap[i].first;
+		}
+		return -1;
+}
+
+// --------------------- cat --------------------- //
+void cat(string filename)
+{		
+		//for(int i = 0; i < g_filemap.size(); i++) cout << g_filemap[i].first;
+		int inode_num = getInodeNum(filename);
+		if(inode_num == -1){
+			cout << "File '" << filename << "' does not exist!\n";
+			return;
+		}
+		inode file_inode = readInode(inode_num);
+		for(int i = 0; i < MAX_FILE_BLOCKS; i++){
+			if(file_inode.datablocks[i]){
+				readData(file_inode.datablocks[i]);
+				printf("%.*s", BLOCK_SZ, block_buffer);
+			}else{
+				break;
+			}
+		}
+		cout << endl;
 }
 
 void initFileMap()

@@ -31,17 +31,18 @@ int main(int argc, char **argv)
 		if(!command.empty()){
 			if((args[0] == "import" || args[0] == "i") && args.size() == 3) 
 			{
-				cout << "Importing file '" << args[2] << "' from " << args[1]<< "\n";
 				import(args[1], args[2]);                                                 
 			}
 			else if((args[0] == "remove" || args[0] == "r") && args.size() == 2)
 			{
-				cout << "Removing: " << args[1] << "\n";
 				remove(args[1]);
+			}
+			else if((args[0] == "cat" || args[0] == "r") && args.size() == 2)
+			{
+				cat(args[1]);
 			}
 			else if((args[0] == "list" || args[0] == "l") && args.size() == 1)
 			{
-				cout << "\nFile List\n----------------------------\n";
 				list();
 			}
 			else if((args[0] == "exit" || args[0] == "q") && args.size() == 1)
@@ -59,10 +60,12 @@ int main(int argc, char **argv)
 			    overwrite(args[1],args[2], args[3],args[4]);
 			  }
 			else if((args[0] == "display" || args[0] == "d") && args.size() == 4)
-                          {
-                            cout<<"displaying...\n";
-			    // display(args[1],args[2], args[3]);
-                          }
+
+			{
+				cout<<"displaying...\n";
+				//display(args[1],args[2], args[3]);
+			}
+
 			else if((args[0] == "help" || args[0] == "h"))
 			{
 				if(args.size() == 1){
