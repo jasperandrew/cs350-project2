@@ -16,6 +16,7 @@ int main(int argc, char **argv)
 	        "Wait just a moment while we set up a few things...\n\n";
 	
 	initDrive();
+    checkPointInit();
 	initFileMap();
 	cout << "\nDone! Now it's time for you to grab L.I.F.E. by the horns!\n"
 	        "Enter a command, or enter 'help' for usage information.\n"
