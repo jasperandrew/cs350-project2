@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 	        "Wait just a moment while we set up a few things...\n\n";
 	
 	initDrive();
-    checkPointInit();
+	checkPointInit();
 	initFileMap();
 	cout << "\nDone! Now it's time for you to grab L.I.F.E. by the horns!\n"
 	        "Enter a command, or enter 'help' for usage information.\n"
@@ -41,18 +41,8 @@ int main(int argc, char **argv)
 			}
 			else if((args[0] == "list" || args[0] == "l") && args.size() == 1)
 			{
-				cout << "Listing all files...\n";
+				cout << "\nFile List\n----------------------------\n";
 				list();
-			}
-			else if((args[0] == "read" || args[0] == "l") && args.size() == 1)
-			{
-				FILE *segment;
-				segment = fopen("DRIVE/SEGMENT1", "r");
-				char tmp[SEG_SZ];
-				size_t poop = fread(tmp, sizeof(char), SEG_SZ, segment);
-				cout << poop;
-				for(int i = 0; i < SEG_SZ; i++) cout << tmp[i];
-				fclose(segment);
 			}
 			else if((args[0] == "exit" || args[0] == "q") && args.size() == 1)
 			{
