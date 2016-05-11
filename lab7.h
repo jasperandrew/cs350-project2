@@ -386,7 +386,7 @@ void overwrite(string filename, string howmany, string start, string c)
 {
   int copyNum =  stoi(howmany);
   int sByte = stoi(start);
-  char chr = c.charAt(0);                                                                                                                                                        
+  char *chr = &c.at(0);                                                                                                                                                        
   int blockNum = 0;
   int size = 0;
   int index = 0;
@@ -399,9 +399,9 @@ void overwrite(string filename, string howmany, string start, string c)
 	  index = i;
         }
     }
-  int seg = block_num/1024;
-  int segBlock = block_num % 1024;
-  Block inode = wbuffer.getBlock(seg_block-1);  
+  int seg = blockNum/1024;
+  int segBlock = blockNum % 1024;
+  Block *inode = wbuffer.getBlock(segBlock-1);  
   while(copyNum + sByte > size)
     {
       Block *incBlock = new Block(0);
@@ -412,7 +412,7 @@ void overwrite(string filename, string howmany, string start, string c)
 	{
 	  wbuffer.addBlock(incBlock);
 	  int dataBlockNum = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
-	  inode.addBlockNum(dataBlockNum);
+	  inode->addBlockNum(dataBlockNum);
 	}
       else
 	{
