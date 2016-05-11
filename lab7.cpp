@@ -55,7 +55,8 @@ int main(int argc, char **argv)
 			}
 			else if((args[0] == "overwrite" || args[0] == "o") && args.size() == 5)
 			  {
-			    overwrite(args[1],args[2], args[3],args[5]);
+			    cout<<"overwriting...\n";
+			    overwrite(args[1],args[2], args[3],args[4]);
 			  }
 			else if((args[0] == "help" || args[0] == "h"))
 			{
