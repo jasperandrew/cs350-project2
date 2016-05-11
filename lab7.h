@@ -68,9 +68,9 @@ class Block {
             if(type == 0)
                 for(int i = 0; i < BLOCK_SZ; i++) data[i] = 0;
             else if(type == 2)
-                for(int i = 0; i < BLOCK_SZ; i++) block_data[i] = 0;
+                for(int i = 0; i < BLOCK_SZ/4; i++) block_data[i] = 0;
             else if(type == 3)
-                for(int i = 0; i < BLOCK_SZ; i++) block_data[i] = 0;
+                for(int i = 0; i < BLOCK_SZ/4; i++) block_data[i] = 0;
 
             num_blocks = 0;
         }
@@ -109,7 +109,15 @@ class Block {
         int getNumBlocks(){ return num_blocks; }
 
         // imap
-        void addInodeBlock(block_num n){ block_data[num_blocks++] = n; }
+        
+        void addInodeData(int start_index);
+        void addToCheckpointRegion();
+        block_num * getData()
+        {
+            return block_data;
+        }
+        void addInodeBlock(block_num n){
+            block_data[num_blocks++] = n; }
         void editInodeBlock(block_num old_n, block_num new_n){
             for(int i = 0; i < num_blocks; i++)
                 if(block_data[i] == old_n) block_data[i] = new_n;
@@ -124,7 +132,7 @@ class Block {
         int type;
         char data[BLOCK_SZ];
         inode inode_data;
-        block_num block_data[BLOCK_SZ];
+        block_num block_data[BLOCK_SZ/4];
         int num_blocks;
 };
 
@@ -137,7 +145,7 @@ class WriteBuffer {
         int getNumBlocks();
         int getInodeCounter(int increment);
         Block* getBlock(int idx);
-        Block* createImapBlock();
+        //Block* createImapBlock();
     private:
         Block *buf[BLOCK_SZ];
         int num_blocks, inode_counter;
@@ -147,6 +155,49 @@ WriteBuffer wbuffer;
 
 // ============================ FUNCTIONS ============================ //
 
+void transferImap(block_num * imap_data)
+{
+    for(int i = 0; i < 256; i++)
+    {
+        g_imap.list[g_imap.idx++] = imap_data[i];
+    }
+
+}
+
+
+void readImaps()
+{
+    for(int i = 0; i < 40; i++)
+    {
+        if(Checkpoint_Region.imaps[i] == tmp){
+            Checkpoint_Region_counter = i;
+            break;
+
+    }
+        int block_num = Checkpoint_Region.imaps[i];
+        int seg_idx = block_num/1024;
+        int seg_block = block_num % 1024;
+
+        if(seg_idx == current_segment){
+            transferImap(wbuffer.getBlock(seg_block-1)->getData());
+        }else{
+            string seg_path = "DRIVE/SEGMENT" + to_string(seg_idx+1);
+            ifstream segment(seg_path, ios::in | ios::binary);
+            segment.seekg(BLOCK_SZ * (seg_block-1));
+            
+            cout << seg_path << " block: " << BLOCK_SZ*(seg_block-1);
+
+
+            char tmp[sizeof(Block)];
+            segment.read(tmp, sizeof(Block));
+            segment.close();
+
+            Block tmp_imap(2);
+            memcpy(&tmp_imap, tmp, sizeof(Block));
+            transferImap(tmp_imap.getData());
+        } 
+    }
+}
 
 //----------CheckPoint------------------//                                                                                 
 
@@ -159,9 +210,14 @@ void checkPointInit()
         if(DBG) cout << "reading checkpoint \n";
         fread(&Checkpoint_Region,sizeof(Checkpoint_Region), 1, checkpoint_file);
         fclose(checkpoint_file);
+        /*for(int i = 0 ; i < 40; i++)
+        {
+            cout << "imap val: " << Checkpoint_Region.imaps[i] << "\n";
+        }*/
         for(; current_segment < 32; current_segment++){
             if(Checkpoint_Region.liveBits[current_segment] == 0) break;
         }
+        readImaps();
     }
     else{
         current_segment = 0;
@@ -176,12 +232,23 @@ void checkPointInit()
     }
     return;
 }
+//---------------------------------------//
+
+void writeImaps(){
+    for(int i = 0; i < 10240; i+=(BLOCK_SZ/4))
+    {
+        if(g_imap.list[i] == 0) break;
+       Block * imap_block = new Block(2);
+       imap_block->addInodeData(i);
+    } 
+}
 
 
 //---------------------------------------//  
 
 void writeCheckpoint()
 {
+    writeImaps();
     FILE * checkpoint_file;
     checkpoint_file =  fopen("DRIVE/CHECKPOINT_REGION", "w");
     if(checkpoint_file != NULL)
@@ -219,14 +286,17 @@ int import(string filepath, string lfs_filename)
         wbuffer.addBlock(inode_block);
 
         g_filemap.push_back(make_pair(g_imap.idx, lfs_filename));
-        g_imap.list[g_imap.idx++] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
+
+        //BLOCK_SZ*current_segment + (getNumBlocks%1024)
+        g_imap.list[g_imap.idx++] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks(); 
+        
         for(int n : g_imap.list) if(n) cout << n << " "; else break;
 
-        Block *imap_block = wbuffer.createImapBlock();
-        wbuffer.addBlock(imap_block);
+        //Block * imap_block = new Block(2);
+        //wbuffer.addBlock(imap_block);
 
-        if(imap_block->isFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = wbuffer.getNumBlocks();
-        else writeCheckpoint();
+        //if(imap_block->isFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks()%BLOCK_SZ; 
+        //else writeCheckpoint();
     }
     else
     {
