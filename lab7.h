@@ -218,14 +218,16 @@ void overwrite(string filename, string howmany, string start, string c)
   int blockNum = 0;
   /*if(copyNum + sByte > size)
     {
-      increse file size
+    increse file size
     }*/
-  for(int i = 0; i < g_filemap.size(); i++){
-    if(g_filemap[i].second == filename)
-      {
-	 blockNum = g_imap.list[g_filemap[i].first];
-      }
-  }
+  for(int i = 0; i < g_filemap.size(); i++)
+    {
+      if(g_filemap[i].second == filename)
+	{
+	  blockNum = g_imap.list[g_filemap[i].first];
+	}
+    }
+  /*get inode from file*/
   return;
 }
 
