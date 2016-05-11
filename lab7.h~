@@ -401,15 +401,12 @@ void overwrite(string filename, string howmany, string start, string c)
     }
   int seg = block_num/1024;
   int segBlock = block_num % 1024;
-  Block inode = wbuffer.getBlock(seg_block-1);  
   while(copyNum + sByte > size)
     {
       Block *incBlock = new Block(0);
-      char tmp_data[BLOCK_SZ] = {0};
-      incBlock->setData(tmp_data);
-
       if(seg == current_segment)
 	{
+	  Block inode = wbuffer.getBlock(seg_block-1);
 	  wbuffer.addBlock(incBlock);
 	  int dataBlockNum = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
 	  inode.addBlockNum(dataBlockNum);
@@ -419,7 +416,6 @@ void overwrite(string filename, string howmany, string start, string c)
 	  
 	}
       g_filemap[index].first = getFileSize(blockNum);
-      size = g_filemap[index].first;
     }
   string path = "DRIVE/SEGMENT";
   ofstream segment(path + to_string(seg), ios::out | ios::binary);
