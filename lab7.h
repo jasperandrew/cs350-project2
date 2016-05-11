@@ -66,24 +66,30 @@ public:
 	Block(int t){
 		type = t;
 		if(type == 0)
-			for(int i = 0; i < BLOCK_SZ; i++) data[i] = 0;			
+			for(int i = 0; i < BLOCK_SZ; i++) data[i] = 0;
 		else if(type == 2)
-			for(int i = 0; i < BLOCK_SZ; i++) block_data[i] = 0;
-		else if(type == 2)
-			for(int i = 0; i < BLOCK_SZ; i++) block_data[i] = 3;
+			for(int i = 0; i < BLOCK_SZ; i++) block_data[i] = '1';
+		else if(type == 3)
+			for(int i = 0; i < BLOCK_SZ; i++) block_data[i] = '2';
+		block_data[0] = '0';
 		
 		num_blocks = 0;
 	}
 	
 	// data
-	void setData(char *d){ memcpy(data, d, sizeof(char)); }
+	void setData(char *d){
+		for(int i = 0; i < BLOCK_SZ; i++){
+			if(d[i]) data[i] = d[i];
+			else break;
+		}
+	}
 	void writeToSegment(){
 		if(type == 0)
-			memcpy(mem_segment+(mem_segment_idx++ * BLOCK_SZ), data, sizeof(char));
+			memcpy(mem_segment+(mem_segment_idx++ * BLOCK_SZ), data, BLOCK_SZ);
 		else if(type == 1)
 			memcpy(mem_segment+(mem_segment_idx++ * BLOCK_SZ), &inode_data, sizeof(inode));
 		else if(type == 2 || type == 3)
-			memcpy(mem_segment+(mem_segment_idx++ * BLOCK_SZ), block_data, sizeof(block_num));
+			memcpy(mem_segment+(mem_segment_idx++ * BLOCK_SZ), block_data, BLOCK_SZ);
 	}
 	
 	// inode
@@ -91,7 +97,7 @@ public:
 	int getSize(){ return inode_data.filesize; }
 	void setFilename(string f){
 		const char *fc = f.c_str();
-		memcpy(inode_data.filename, fc, sizeof(char));
+		memcpy(inode_data.filename, fc, f.length()*sizeof(char));
 	}
 	char* getFilename(){ return inode_data.filename; }
 	void addBlockNum(block_num n){ inode_data.datablocks[num_blocks++] = n; }
@@ -231,7 +237,7 @@ int import(string filepath, string lfs_filename)
 
 
 void overwrite(string filename, string howmany, string start, string c)
-{
+{/*
   int copyNum =  stoi(howmany);
   int sByte = stoi(start);
   char chr = c.charAt(0);
@@ -239,7 +245,7 @@ void overwrite(string filename, string howmany, string start, string c)
   /*if(copyNum + sByte > size)
     {
     increse file size
-    }*/
+    }*
   for(int i = 0; i < g_filemap.size(); i++)
     {
       if(g_filemap[i].second == filename)

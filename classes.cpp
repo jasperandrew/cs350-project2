@@ -43,7 +43,9 @@ void WriteBuffer::writeToDisk(){
 	for(int i = 0; i < num_blocks; i++){
 		buf[i]->writeToSegment();
 	}
-
+	for(int i = 0; i < 12*BLOCK_SZ; i++){
+		cout << mem_segment[i];
+	}
 	FILE *fp;
 	size_t nw;
 	if ((fp = fopen(("DRIVE/SEGMENT" + to_string(nextSegment+1)).c_str(), "r+")) == NULL) {
