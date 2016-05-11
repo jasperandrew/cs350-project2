@@ -127,6 +127,7 @@ class Block {
 
         // segment summary
         void addBlockNumType(block_num n, int type){block_data[num_blocks++] = n;}
+	Block* getInode(int inode_num);
 
     private:
         int type;
@@ -335,40 +336,6 @@ int import(string filepath, string lfs_filename)
 
 
 
-void overwrite(string filename, string howmany, string start, string c)
-{
-    int copyNum =  stoi(howmany);
-    int sByte = stoi(start);
-    //char chr = c.charAt(0);
-    int blockNum = 0;
-    /*if(copyNum + sByte > size)
-      {
-      increse file size
-      }*/
-    for(int i = 0; i < g_filemap.size(); i++)
-    {
-        if(g_filemap[i].second == filename)
-        {
-            blockNum = g_imap.list[g_filemap[i].first];
-        }
-    }
-    int seg = (blockNum - (blockNum % BLOCK_SZ))/ BLOCK_SZ;
-    string path = "DRIVE/SEGMENT";
-    ofstream segment(path + to_string(seg), ios::out | ios::binary);
-    for(int i = 0; i< copyNum;i++)
-    {  
-        segment.seekp(sByte + i);
-        //segment.write(chr, 1);
-        segment.close();
-    }
-    /*update inode*/
-    return;
-}
-
-//---------------------------------------//
-
-
-
 // --------------------- remove --------------------- //
 void remove(string filename)
 {
@@ -439,6 +406,61 @@ int getFileSize(int inode_num)
     }
     return -1;
 }
+
+
+
+//----------ovrwrite--------------//
+void overwrite(string filename, string howmany, string start, string c)
+{
+  int copyNum =  stoi(howmany);
+  int sByte = stoi(start);
+  char *chr = &c.at(0);                                                                                                                                                        
+  int blockNum = 0;
+  int size = 0;
+  int index = 0;
+  for(int i = 0; i < g_filemap.size(); i++)
+    {
+      if(g_filemap[i].second == filename)
+        {
+	  blockNum = g_imap.list[g_filemap[i].first];
+	  size = g_filemap[i].first;
+	  index = i;
+        }
+    }
+  int seg = blockNum/1024;
+  int segBlock = blockNum % 1024;
+  Block *inode = wbuffer.getBlock(segBlock-1);  
+  while(copyNum + sByte > size)
+    {
+      Block *incBlock = new Block(0);
+      char tmp_data[BLOCK_SZ] = {0};
+      incBlock->setData(tmp_data);
+
+      if(seg == current_segment)
+	{
+	  wbuffer.addBlock(incBlock);
+	  int dataBlockNum = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
+	  inode->addBlockNum(dataBlockNum);
+	}
+      else
+	{
+	  
+	}
+      g_filemap[index].first = getFileSize(blockNum);
+      size = g_filemap[index].first;
+    }
+  string path = "DRIVE/SEGMENT";
+  ofstream segment(path + to_string(seg), ios::out | ios::binary);
+  for(int i = 0; i< copyNum;i++)
+    {
+      segment.seekp(sByte + i);
+      segment.write(chr, 1);
+      segment.close();
+    }
+  
+  return;
+}
+
 
 // --------------------- list --------------------- //
 void list()
