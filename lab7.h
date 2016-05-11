@@ -67,13 +67,15 @@ public:
 		type = t;
 		if(type == 0)
 			for(int i = 0; i < BLOCK_SZ; i++) data[i] = 0;			
-		else if(type == 2)
+		else if(type == 1)
 			for(int i = 0; i < BLOCK_SZ; i++) block_data[i] = 0;
 		else if(type == 2)
 			for(int i = 0; i < BLOCK_SZ; i++) block_data[i] = 3;
 		
 		num_blocks = 0;
 	}
+
+    int getType(){return type};
 	
 	// data
 	void setData(char *d){ memcpy(data, d, sizeof(char)); }
@@ -111,6 +113,7 @@ public:
 	bool isFull(){ return block_data[BLOCK_SZ - 1]; }
 	
 	// segment summary
+    void addBlockNumType(block_num n, int type){block_data[num_blocks++] = }
 
 private:
 	int type;
@@ -251,7 +254,7 @@ void overwrite(string filename, string howmany, string start, string c)
   for(int i = 0; i< copyNum;i++)
     {  
       segment.seekp(sByte + i);
-      segment.write(chr, 1);
+      //segment.write(chr, 1);
       segment.close();
     }
   /*update inode*/
@@ -335,7 +338,8 @@ int getFileSize(int inode_num)
 // --------------------- list --------------------- //
 void list()
 {
-    //int i = 0;
+    /*
+    int i = 0;
     while(Checkpoint_Region.liveBits[i] != 0)
     {
         char tmp_segment[SEG_SZ];
@@ -354,7 +358,7 @@ void list()
         }
 
         i++ 
-    }
+    }*/
 /*
     for(int i = 0; i < g_filemap.size();i++)
     {
