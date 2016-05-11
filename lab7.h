@@ -184,21 +184,23 @@ int import(string filepath, string lfs_filename)
 
 void overwrite(string filename, string howmany, string start, string c)
 {
-    int copyNum =  stoi(howmany);
-    int sByte = stoi(start);
-    //char chr = c.charAt(0);
-    int blockNum = 0;
-    /*if(copyNum + sByte > size)
-      {
-      increse file size
-      }*/
-    for(int i = 0; i < g_filemap.size(); i++){
-        if(g_filemap[i].second == filename)
-        {
-            blockNum = g_imap.list[g_filemap[i].first];
-        }
+  int copyNum =  stoi(howmany);
+  int sByte = stoi(start);
+  char chr = c.charAt(0);
+  int blockNum = 0;
+  /*if(copyNum + sByte > size)
+    {
+    increse file size
+    }*/
+  for(int i = 0; i < g_filemap.size(); i++)
+    {
+      if(g_filemap[i].second == filename)
+	{
+	  blockNum = g_imap.list[g_filemap[i].first];
+	}
     }
-    return;
+  /*get inode from file*/
+  return;
 }
 
 //---------------------------------------//
