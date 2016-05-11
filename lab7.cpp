@@ -58,6 +58,11 @@ int main(int argc, char **argv)
 			    cout<<"overwriting...\n";
 			    overwrite(args[1],args[2], args[3],args[4]);
 			  }
+			else if((args[0] == "display" || args[0] == "d") && args.size() == 4)
+                          {
+                            cout<<"displaying...\n";
+                            display(args[1],args[2], args[3]);
+                          }
 			else if((args[0] == "help" || args[0] == "h"))
 			{
 				if(args.size() == 1){
