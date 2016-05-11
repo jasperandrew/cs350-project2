@@ -159,8 +159,12 @@ void checkPointInit()
         if(DBG) cout << "reading checkpoint \n";
         fread(&Checkpoint_Region,sizeof(Checkpoint_Region), 1, checkpoint_file);
         fclose(checkpoint_file);
+        for(; current_segment < 32; current_segment++){
+            if(Checkpoint_Region.liveBits[current_segment] == 0) break;
+        }
     }
     else{
+        current_segment = 0;
         for(unsigned int imap: Checkpoint_Region.imaps)
         {
             imap = 0;

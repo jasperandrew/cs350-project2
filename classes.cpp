@@ -32,11 +32,10 @@ void WriteBuffer::addBlock(Block *b){
 
 void WriteBuffer::writeToDisk(){
 	// Segment summary blocks
-	int nextSegment = 0;
-	for(; nextSegment < 32; nextSegment++){
-        //cout << "Checkpoint_region.liveBits: " << nextSegment << " is " << (char)Checkpoint_Region.liveBits[nextSegment] << "\n"; 
+	int nextSegment = current_segment;
+	/*for(; nextSegment < 32; nextSegment++){
 		if(Checkpoint_Region.liveBits[nextSegment] == 0) break;
-	}
+	}*/
 	
 	if(DBG) cout << "Writing to SEGMENT" + to_string(nextSegment+1) << endl;
 
