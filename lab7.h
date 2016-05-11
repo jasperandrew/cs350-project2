@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <string.h>
+#include <limits.h>
 
 #include <iostream>
 #include <cstring>
@@ -178,12 +179,10 @@ void readImaps()
 
         }
         int block_number = Checkpoint_Region.imaps[i];
-       // cout << "Recieved imap block num: " << Checkpoint_Region.imaps[i] << "\n";
         int seg_idx = block_number/1024;
         int seg_block = block_number % 1024;
 
         if(seg_idx == current_segment){
-            //cout << current_segment<< "\n";
             transferImap(wbuffer.getBlock(seg_block-1)->getData());
         }else{
             string seg_path = "DRIVE/SEGMENT" + to_string(seg_idx+1);
@@ -193,29 +192,7 @@ void readImaps()
             fseek(fp, (BLOCK_SZ * (seg_block-1)), SEEK_SET);
             fread(tmpB, sizeof(block_num), BLOCK_SZ/4, fp);
             fclose(fp);
-            for(int x = 0; x < 256; x++)
-            {
-                //cout << "tmpB" << x << ": " << tmpB[x] << "\n";
-            }
             transferImap(tmpB);
-            /*
-               ifstream segment(seg_path, ios::in | ios::binary);
-               segment.seekg(BLOCK_SZ * (seg_block-1));
-
-               cout << seg_path << " block: " << seg_block << "\n";
-
-
-               unsigned char tmp[BLOCK_SZ];
-               segment.read(tmp, sizeof(tmp));
-               segment.close();
-            //Block tmp_imap(2);
-
-            block_num tmpB[BLOCK_SZ/4];
-            memcpy(tmpB, tmp, BLOCK_SZ);
-            transferImap(tmpB);
-            */
-            //memcpy(&tmp_imap, tmp, sizeof(Block));
-            //transferImap(tmp_imap.getData())*/
         } 
     }
 }
@@ -289,6 +266,24 @@ void writeCheckpoint()
     return;
 }
 
+void lookForFreeSpots(string lfs_filename)
+{
+    bool found = false;
+    for(int i = 0; i < 10240; i++)
+    {
+        if(g_imap.list[i] == UINT_MAX)
+        {
+            g_filemap.push_back(make_pair(i, lfs_filename));
+            g_imap.list[i] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
+            found = true;
+        }
+    }
+    if(!found) cout << "YER OUTTER SPACE!\n";
+    return;
+}
+
+
+
 // --------------------- import --------------------- //
 int import(string filepath, string lfs_filename)
 {
@@ -313,11 +308,15 @@ int import(string filepath, string lfs_filename)
         }
 
         wbuffer.addBlock(inode_block);
-
-        g_filemap.push_back(make_pair(g_imap.idx, lfs_filename));
-
-        //BLOCK_SZ*current_segment + (getNumBlocks%1024)
-        g_imap.list[g_imap.idx++] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks(); 
+        if(g_imap.idx < 10239)
+        {
+            g_filemap.push_back(make_pair(g_imap.idx, lfs_filename));
+            g_imap.list[g_imap.idx++] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
+        }
+        else 
+        {
+            lookForFreeSpots(lfs_filename);
+        }
 
         for(int n : g_imap.list) if(n) cout << n << " "; else break;
 
@@ -339,16 +338,22 @@ int import(string filepath, string lfs_filename)
 // --------------------- remove --------------------- //
 void remove(string filename)
 {
+    bool removed = false;
+    unsigned int remove_block;
     for(int i = 0; i < g_filemap.size(); i++){
         if(g_filemap[i].second == filename){
+            remove_block = g_filemap[i].first;
             g_filemap.erase(g_filemap.begin()+i);
-            if(DBG) cout << " happened in remove\n";
-        }
-        else
-        {
-            cout << "File Does Not Exist!\n";
+            removed = true;
+            if(DBG) cout << "removed " << filename << "\n";
         }
     }
+    if(!removed)
+    {
+        cout << "file does not exist\n";
+        return;
+    }
+    g_imap.list[remove_block] = UINT_MAX;
     return;
 }
 /*
