@@ -17,8 +17,6 @@ int main(int argc, char **argv)
 	
 	initDrive();
 	initFileMap();
-	checkPointInit();
-
 	cout << "\nDone! Now it's time for you to grab L.I.F.E. by the horns!\n"
 	        "Enter a command, or enter 'help' for usage information.\n"
 	        "\n{epic prompt} ";
@@ -54,6 +52,10 @@ int main(int argc, char **argv)
 				cout << "\nQuitting L.I.F.E.\n\u0CA0_\u0CA0\n";
 				exit(0);
 			}
+			else if((args[0] == "overwrite" || args[0] == "o") && args.size() == 5)
+			  {
+			    overwrite(args[1],args[2], args[3],args[5]);
+			  }
 			else if((args[0] == "help" || args[0] == "h"))
 			{
 				if(args.size() == 1){

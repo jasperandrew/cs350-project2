@@ -76,7 +76,7 @@ vector<pair<int, string>> g_filemap;
 
 struct Checkpoint_Region{
     unsigned int imaps[40];
-    int liveBits[32];
+    char liveBits[32];
 } Checkpoint_Region;
 
 struct global_imap_s {
@@ -160,7 +160,7 @@ void writeCheckpoint()
 	
 	for(int k = 0; k < 32; k++)
 	{
-		checkpoint << (char)Checkpoint_Region.liveBits[k] << "\n";
+		checkpoint << (int)Checkpoint_Region.liveBits[k] << "\n";
 	}
 	checkpoint.close();
 	return;
@@ -209,7 +209,7 @@ int import(string filepath, string lfs_filename)
 }
 
 
-
+<<<<<<< HEAD
 void overwrite(string filename, string howmany, string start, string c)
 {
   int copyNum =  stoi(howmany);
@@ -228,10 +228,16 @@ void overwrite(string filename, string howmany, string start, string c)
   }
   return;
 }
+=======
+
+
+
+
+
 
 //---------------------------------------//
 
-
+>>>>>>> c98256c9914ff187fb3740dad4ccea2489b7d132
 
 // --------------------- remove --------------------- //
 void remove(string filename)
@@ -286,7 +292,7 @@ void list()
 	for(int i = 0; i < g_filemap.size();i++)
 	{
 		cout << g_filemap[i].second<< " | ";
-		//cout << getFileSize(g_filemap[i].first) << "\n";
+		cout << getFileSize(g_filemap[i].first) << "\n";
 	}
 	return;
 }
@@ -359,7 +365,7 @@ int initDrive()
 
     // Create checkpoint region file
     if(DBG) cout << "Creating checkpoint region file\n";
-    ofstream checkpoint(path + string("/CHECKPOINT_REGION"), ios::out );
+    ofstream checkpoint(path + string("/CHECKPOINT_REGION"), ios::out | ios::binary);
     checkpoint.seekp(192-1);
     checkpoint.write("", 1);
     checkpoint.close();
