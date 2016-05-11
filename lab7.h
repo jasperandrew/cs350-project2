@@ -32,11 +32,6 @@ typedef struct inode_struct {
     block_num datablocks[MAX_FILE_BLOCKS];
 } inode;
 
-typedef struct segsum_entry_struct {
-    int one;
-    int two;
-} segsum_entry;
-
 // ============================ GLOBAL VARIABLES ============================== //
 /*
    struct sysdata {
@@ -46,6 +41,8 @@ typedef struct segsum_entry_struct {
 char mem_segment[SEG_SZ];
 int mem_segment_idx;
 int current_segment;
+
+char block_buffer[BLOCK_SZ];
 
 vector<pair<int, string>> g_filemap;
 
@@ -74,9 +71,10 @@ class Block {
                 for(int i = 0; i < BLOCK_SZ/4; i++) block_data[i] = 0;
 
             num_blocks = 0;
+						//initInode(&inode_data);
         }
 
-        int getType(){return type;}
+        int getType(){ return type;}
 
         // data
         void setData(char *d){
@@ -85,6 +83,7 @@ class Block {
                 else break;
             }
         }
+				char* getData(){ return data; }
         void writeToSegment(){
             if(type == 0)
                 memcpy(mem_segment+(mem_segment_idx++ * BLOCK_SZ), data, BLOCK_SZ);
@@ -108,15 +107,13 @@ class Block {
                 if(inode_data.datablocks[i] == old_n) inode_data.datablocks[i] = new_n;
         }
         int getNumBlocks(){ return num_blocks; }
+				inode getInode(){ return inode_data; }
 
         // imap
 
         void addInodeData(int start_index);
         void addToCheckpointRegion();
-        block_num * getData()
-        {
-            return block_data;
-        }
+        block_num* getBlockData(){ return block_data; }
         void addInodeBlock(block_num n){
             block_data[num_blocks++] = n; }
         void editInodeBlock(block_num old_n, block_num new_n){
@@ -183,7 +180,8 @@ void readImaps()
         int seg_block = block_number % 1024;
 
         if(seg_idx == current_segment){
-            transferImap(wbuffer.getBlock(seg_block-1)->getData());
+            //cout << current_segment<< "\n";
+            transferImap(wbuffer.getBlock(seg_block-1)->getBlockData());
         }else{
             string seg_path = "DRIVE/SEGMENT" + to_string(seg_idx+1);
             FILE * fp;
@@ -287,7 +285,8 @@ void lookForFreeSpots(string lfs_filename)
 // --------------------- import --------------------- //
 int import(string filepath, string lfs_filename)
 {
-    ifstream input_file(filepath, ios::in | ios::ate | ios::binary);
+	cout << "Importing '" << filepath << "' --> " << lfs_filename << "\n";
+   ifstream input_file(filepath, ios::in | ios::ate | ios::binary);
     if(input_file){
         int file_len = input_file.tellg();
         Block *inode_block = new Block(1);
@@ -333,8 +332,6 @@ int import(string filepath, string lfs_filename)
     return 0;
 }
 
-
-
 // --------------------- remove --------------------- //
 void remove(string filename)
 {
@@ -356,45 +353,19 @@ void remove(string filename)
     g_imap.list[remove_block] = UINT_MAX;
     return;
 }
-/*
-   int getFileSize(int inode_num)
-   {
-   int block_num = g_imap.list[inode_num];
-   int seg_idx = block_num/1024;
-   int seg_block = block_num % 1024;
-
-   string seg_path = "DRIVE/SEGMENT" + to_string(seg_idx+1);
-   cout << inode_num << " " << seg_path << " " << seg_block << " " << BLOCK_SZ * seg_block << " | ";
-   ifstream segment(seg_path, ios::in | ios::binary);
-   segment.seekg(BLOCK_SZ * seg_block);
-   char tmp[1024] = {0};
-   segment.read(tmp, BLOCK_SZ);
-   cout << tmp; return 0;
-   char c = 0;
-   while(c != -1){
-   segment.get(c);
-   cout << c;
-   }
-   segment.get(c);
-   segment.close();
-   return (int)c;
-   }
-   */
-
-
-
 
 // --------------------- list --------------------- //
 
-int getFileSize(int inode_num)
+inode readInode(int inode_num)
 {
-    int block_num = g_imap.list[inode_num];
-    int seg_idx = block_num/1024;
-    int seg_block = block_num % 1024;
-    int size;
+    int inode_block = g_imap.list[inode_num];
+    int seg_idx = inode_block/BLOCK_SZ;
+    int seg_block = inode_block % BLOCK_SZ;
+		inode tmp_inode;
+		//initInode(&tmp_inode);
 
     if(seg_idx == current_segment){
-        return wbuffer.getBlock(seg_block-1)->getSize();
+        tmp_inode = wbuffer.getBlock(seg_block-1)->getInode();
     }else{
         string seg_path = "DRIVE/SEGMENT" + to_string(seg_idx+1);
         ifstream segment(seg_path, ios::in | ios::binary);
@@ -404,25 +375,44 @@ int getFileSize(int inode_num)
         segment.read(tmp, sizeof(inode));
         segment.close();
 
-        inode tmp_inode;
         memcpy(&tmp_inode, tmp, sizeof(inode));
+		}
+    return tmp_inode;
+}
 
-        return tmp_inode.filesize;
-    }
-    return -1;
+void readData(block_num num)
+{
+		for(int i = 0; i < BLOCK_SZ; i++) block_buffer[i] = 0;
+	
+    int seg_idx = num/BLOCK_SZ;
+    int seg_block = num % BLOCK_SZ;
+
+    if(seg_idx == current_segment){
+        memcpy(block_buffer, wbuffer.getBlock(seg_block-1)->getData(), BLOCK_SZ);
+    }else{
+        string seg_path = "DRIVE/SEGMENT" + to_string(seg_idx+1);
+        ifstream segment(seg_path, ios::in | ios::binary);
+        segment.seekg(BLOCK_SZ * (seg_block-1));
+
+				segment.read(block_buffer, SEG_SZ);
+        segment.close();
+		}
 }
 
 
 
-//----------ovrwrite--------------//
+//----------overwrite--------------//
 void overwrite(string filename, string howmany, string start, string c)
-{
+{/*
+  //convert strings args to ints
   int copyNum =  stoi(howmany);
   int sByte = stoi(start);
   char *chr = &c.at(0);                                                                                                                                                        
   int blockNum = 0;
   int size = 0;
   int index = 0;
+
+  //get inode Block Num and file map index
   for(int i = 0; i < g_filemap.size(); i++)
     {
       if(g_filemap[i].second == filename)
@@ -434,48 +424,105 @@ void overwrite(string filename, string howmany, string start, string c)
     }
   int seg = blockNum/1024;
   int segBlock = blockNum % 1024;
-  Block *inode = wbuffer.getBlock(segBlock-1);  
+
+  
   while(copyNum + sByte > size)
     {
       Block *incBlock = new Block(0);
       char tmp_data[BLOCK_SZ] = {0};
       incBlock->setData(tmp_data);
-
+      //if in current segment get inode from the wbuffer
       if(seg == current_segment)
 	{
+	  Block *inode = wbuffer.getBlock(segBlock-1);
 	  wbuffer.addBlock(incBlock);
 	  int dataBlockNum = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
 	  inode->addBlockNum(dataBlockNum);
+	  g_filemap[index].first = getFileSize(blockNum);
+	  size = g_filemap[index].first;
 	}
+      //if inode not in buffer find it in the segment file
       else
 	{
-	  
+	  //open segment find inode location
+     	  string seg_path = "DRIVE/SEGMENT" + to_string(seg+1);
+	  ifstream segment(seg_path, ios::in | ios::binary);
+	  segment.seekg(BLOCK_SZ * (segBlock-1));
+
+	  //read inode struct from segment
+	  char tmp[sizeof(inode)];
+	  segment.read(tmp, sizeof(inode));
+	  segment.close();
+	  inode tmp_inode;
+	  memcpy(&tmp_inode, tmp, sizeof(inode));
+
+	  //change filesize of inode
+	  tmp_inode.filesize = sizeof(char)*copyNum;
+	  memcpy(&tmp, tmp_inode, sizeof(inode));
+
+	  //write back change to segment 
+	  ofstream segment(seg_path, ios::in | ios::binary);
+          segment.seekp(BLOCK_SZ * (segBlock-1));
+	  segment.write(tmp, sizeof(inode));
+          segment.close();
+
+	  size = tmp_inode.filesize;
 	}
-      g_filemap[index].first = getFileSize(blockNum);
-      size = g_filemap[index].first;
     }
-  string path = "DRIVE/SEGMENT";
-  ofstream segment(path + to_string(seg), ios::out | ios::binary);
-  for(int i = 0; i< copyNum;i++)
+  //write char copyNum times to segment location
+  if(copyNum + sByte <= size)
     {
-      segment.seekp(sByte + i);
-      segment.write(chr, 1);
-      segment.close();
+      string path = "DRIVE/SEGMENT";
+      ofstream segment(path + to_string(seg), ios::out | ios::binary);
+      for(int i = 0; i< copyNum;i++)
+        {
+          segment.seekp(sByte + i);
+          segment.write(chr, 1);
+          segment.close();
+        }
     }
-  
   return;
+	*/
 }
 
 
 // --------------------- list --------------------- //
 void list()
 {
-    for(int i = 0; i < g_filemap.size();i++)
-    {
-        cout << g_filemap[i].second << " (";
-        cout << getFileSize(g_filemap[i].first) << " bytes)\n";
-    }
-    return;
+	cout << "\nFile List\n----------------------------\n";
+	for(int i = 0; i < g_filemap.size();i++){
+		cout << g_filemap[i].second << " (";
+		cout << readInode(g_filemap[i].first).filesize << " bytes)\n";
+	}
+}
+
+int getInodeNum(string filename){
+		for(int i = 0; i < g_filemap.size(); i++){
+			cout << "blah";
+			if(g_filemap[i].second == filename) return 0;//g_filemap[i].first;
+		}
+		return -1;
+}
+
+// --------------------- cat --------------------- //
+void cat(string filename)
+{		
+		//for(int i = 0; i < g_filemap.size(); i++) cout << g_filemap[i].first;
+		int inode_num = getInodeNum(filename);
+		if(inode_num == -1){
+			cout << "File '" << filename << "' does not exist!\n";
+			return;
+		}
+		inode file_inode = readInode(inode_num);
+		for(int i = 0; i < MAX_FILE_BLOCKS; i++){
+			if(file_inode.datablocks[i]){
+				readData(file_inode.datablocks[i]);
+				printf("%.*s", BLOCK_SZ, block_buffer);
+			}else{
+				break;
+			}
+		}
+		cout << endl;
 }
 
 void initFileMap()
