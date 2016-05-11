@@ -45,6 +45,16 @@ int main(int argc, char **argv)
 				cout << "Listing all files...\n";
 				list();
 			}
+			else if((args[0] == "read" || args[0] == "l") && args.size() == 1)
+			{
+				FILE *segment;
+				segment = fopen("DRIVE/SEGMENT1", "r");
+				char tmp[SEG_SZ];
+				size_t poop = fread(tmp, sizeof(char), SEG_SZ, segment);
+				cout << poop;
+				for(int i = 0; i < SEG_SZ; i++) cout << tmp[i];
+				fclose(segment);
+			}
 			else if((args[0] == "exit" || args[0] == "q") && args.size() == 1)
 			{
 				cout << "Getting L.I.F.E. together...\n\n";
