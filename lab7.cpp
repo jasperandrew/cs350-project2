@@ -48,15 +48,21 @@ int main(int argc, char **argv)
 			else if((args[0] == "exit" || args[0] == "q") && args.size() == 1)
 			{
 				cout << "Getting L.I.F.E. together...\n\n";
-				wbuffer.writeToDisk();
 				writeCheckpoint();
+				wbuffer.writeToDisk();
 				writeFileMap();
 				cout << "\nQuitting L.I.F.E.\n\u0CA0_\u0CA0\n";
 				exit(0);
 			}
 			else if((args[0] == "overwrite" || args[0] == "o") && args.size() == 5)
+			  {
+			    cout<<"overwriting...\n";
+			    overwrite(args[1],args[2], args[3],args[4]);
+			  }
+			else if((args[0] == "display" || args[0] == "d") && args.size() == 4)
 			{
-				overwrite(args[1],args[2], args[3],args[5]);
+				cout<<"displaying...\n";
+				//display(args[1],args[2], args[3]);
 			}
 			else if((args[0] == "help" || args[0] == "h"))
 			{
