@@ -21,7 +21,7 @@ WriteBuffer::WriteBuffer(){
 
 WriteBuffer::~WriteBuffer(){
 	for(int i = 0; i < BLOCK_SZ; i++){
-		
+		if(buf[i]) delete buf[i];
 	}
 }
 
@@ -43,23 +43,10 @@ void WriteBuffer::writeToDisk(){
 	for(int i = 0; i < num_blocks; i++){
 		buf[i]->writeToSegment();
 	}
-	for(int i = 0; i < 12*BLOCK_SZ; i++){
-		cout << mem_segment[i];
-	}
-	FILE *fp;
-	size_t nw;
-	if ((fp = fopen(("DRIVE/SEGMENT" + to_string(nextSegment+1)).c_str(), "r+")) == NULL) {
-		perror("Trouble opening the file in writeSegmentFile"); 
-		exit(1);
-	}
-	nw = fwrite(mem_segment, sizeof(char), SEG_SZ, fp);  
-	if (nw != SEG_SZ) {
-		perror("Trouble in writeSegmentFile"); 
-		fprintf(stderr,"Wrote %d bytes (expected %d).\n", 
-			 (int) nw, (int) SEG_SZ); 
-		exit(1);
-	}
-	fclose(fp);
+	
+	ofstream segment("DRIVE/SEGMENT" + to_string(nextSegment+1), ios::out | ios::binary);
+	segment.write(mem_segment, SEG_SZ);
+	segment.close();
 	
 	Checkpoint_Region.liveBits[nextSegment] = 1;
 	num_blocks = 8;

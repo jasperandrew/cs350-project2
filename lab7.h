@@ -68,10 +68,9 @@ public:
 		if(type == 0)
 			for(int i = 0; i < BLOCK_SZ; i++) data[i] = 0;
 		else if(type == 2)
-			for(int i = 0; i < BLOCK_SZ; i++) block_data[i] = '1';
+			for(int i = 0; i < BLOCK_SZ; i++) block_data[i] = 0;
 		else if(type == 3)
-			for(int i = 0; i < BLOCK_SZ; i++) block_data[i] = '2';
-		block_data[0] = '0';
+			for(int i = 0; i < BLOCK_SZ; i++) block_data[i] = 0;
 		
 		num_blocks = 0;
 	}
@@ -144,7 +143,6 @@ private:
 WriteBuffer wbuffer;
 
 // ============================ FUNCTIONS ============================ //
-//
 
 
 //----------CheckPoint------------------//                                                                                 
@@ -175,8 +173,6 @@ void checkPointInit()
 
 
 //---------------------------------------//  
-
-// Need to write to disc after every import
 
 void writeCheckpoint()
 {
@@ -242,7 +238,7 @@ void overwrite(string filename, string howmany, string start, string c)
   int sByte = stoi(start);
   char chr = c.charAt(0);
   int blockNum = 0;
-  /*if(copyNum + sByte > size)
+  if(copyNum + sByte > size)
     {
     increse file size
     }*
@@ -319,34 +315,31 @@ int getFileSize(int inode_num)
 	int size;
 	
 	if(seg_idx == current_segment){
-		cout << "in ";
 		return wbuffer.getBlock(seg_block-1)->getSize();
 	}else{
-		cout << "out ";
 		string seg_path = "DRIVE/SEGMENT" + to_string(seg_idx+1);
 		ifstream segment(seg_path, ios::in | ios::binary);
 		segment.seekg(BLOCK_SZ * (seg_block-1));
-		char tmp[1024] = {0};
-		segment.read(tmp, BLOCK_SZ);
-		cout << tmp;
-		char c = 1;
-		while(c != 0){
-			segment.get(c);
-			cout << c;
-		}
-		segment.get(c);
+		
+		char tmp[sizeof(inode)];
+		segment.read(tmp, sizeof(inode));
 		segment.close();
-		return (int)c;
+		
+		inode tmp_inode;
+		memcpy(&tmp_inode, tmp, sizeof(inode));
+
+		return tmp_inode.filesize;
 	}
 	return -1;
 }
+
 // --------------------- list --------------------- //
 void list()
 {
     for(int i = 0; i < g_filemap.size();i++)
     {
-        cout << g_filemap[i].second<< " | ";
-        //cout << getFileSize(g_filemap[i].first) << "\n";
+        cout << g_filemap[i].second << " (";
+        cout << getFileSize(g_filemap[i].first) << " bytes)\n";
     }
     return;
 }
@@ -362,7 +355,7 @@ void initFileMap()
         pair<int, string> tmp;
         int iNodenum;
         string line, tmpFileName;
-        if(DBG) cout<<"Reading Filename map\n";
+        if(DBG) cout << "Reading Filename map\n";
         while(getline(filemap,line))
         {
             stringstream s(line);
