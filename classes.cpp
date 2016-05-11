@@ -173,6 +173,7 @@ void WriteBuffer::writeToDisk(){
 	// Segment summary blocks
 	int nextSegment = 0;
 	for(; nextSegment < 32; nextSegment++){
+        //cout << "Checkpoint_region.liveBits: " << nextSegment << " is " << (char)Checkpoint_Region.liveBits[nextSegment] << "\n"; 
 		if(Checkpoint_Region.liveBits[nextSegment] == 0) break;
 	}
 	

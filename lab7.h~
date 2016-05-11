@@ -209,7 +209,7 @@ int import(string filepath, string lfs_filename)
 }
 
 
-
+<<<<<<< HEAD
 void overwrite(string filename, string howmany, string start, string c)
 {
   int copyNum =  stoi(howmany);
@@ -228,10 +228,16 @@ void overwrite(string filename, string howmany, string start, string c)
   }
   return;
 }
+=======
+
+
+
+
+
 
 //---------------------------------------//
 
-
+>>>>>>> c98256c9914ff187fb3740dad4ccea2489b7d132
 
 // --------------------- remove --------------------- //
 void remove(string filename)
