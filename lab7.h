@@ -99,11 +99,10 @@ int Checkpoint_Region_counter = 0;
 void checkPointInit()
 {
     FILE * checkpoint_file;
-    checkpoint_file = fopen("DRIVE/CHECKPOINT_REGION","r+");
+    checkpoint_file = fopen("DRIVE/CHECKPOINT_REGION","r");
     if(checkpoint_file != NULL){
         if(DBG) cout << "reading checkpoint \n";
         fread(&Checkpoint_Region,sizeof(Checkpoint_Region), 1, checkpoint_file);
-        //memcpy(&Checkpoint_Region,checkpoint_file,sizeof(checkpoint_file));
         fclose(checkpoint_file);
     }
     else{
@@ -131,7 +130,6 @@ void writeCheckpoint()
     if(checkpoint_file != NULL)
     {
         fwrite(&Checkpoint_Region,sizeof(Checkpoint_Region), 1, checkpoint_file);
-        //memcpy(checkpoint_file,&Checkpoint_Region, sizeof(Checkpoint_Region));
         fclose(checkpoint_file);
     }
     else perror("File Open Failed: ");
@@ -184,23 +182,23 @@ int import(string filepath, string lfs_filename)
 
 void overwrite(string filename, string howmany, string start, string c)
 {
-  int copyNum =  stoi(howmany);
-  int sByte = stoi(start);
-  char chr = c.charAt(0);
-  int blockNum = 0;
-  /*if(copyNum + sByte > size)
+    int copyNum =  stoi(howmany);
+    int sByte = stoi(start);
+    //char chr = c.charAt(0);
+    int blockNum = 0;
+    /*if(copyNum + sByte > size)
+      {
+      increse file size
+      }*/
+    for(int i = 0; i < g_filemap.size(); i++)
     {
-    increse file size
-    }*/
-  for(int i = 0; i < g_filemap.size(); i++)
-    {
-      if(g_filemap[i].second == filename)
-	{
-	  blockNum = g_imap.list[g_filemap[i].first];
-	}
+        if(g_filemap[i].second == filename)
+        {
+            blockNum = g_imap.list[g_filemap[i].first];
+        }
     }
-  /*get inode from file*/
-  return;
+    /*get inode from file*/
+    return;
 }
 
 //---------------------------------------//
@@ -257,12 +255,34 @@ void remove(string filename)
 // --------------------- list --------------------- //
 void list()
 {
+    //int i = 0;
+    while(Checkpoint_Region.liveBits[i] != 0)
+    {
+        char tmp_segment[SEG_SZ];
+        fread(tmp_segment,sizeof(char),SEG_SZ, SEGMENT_FILE);
+        char segment_summary[BLOCK_SZ * 4];
+        memcpy(segmentSummary,tmp_segment,BLOCK_SZ*4);
+        for(int x = 0; x < BLOCK_SZ*4; x+=2)
+        {
+            if(segmentSummary[x] = segmentSummary[x+1]) // indicates its an inode
+            {
+                char tmp_filename[50];
+                //tmp_segment[x%BLOCK_SZ]; 
+                memcpy(tmp_filename,tmp_segment[x%BLOCK_SZ],50)
+                cout << "file: " <<tmp_filename << " size: " << tmp_size; 
+            }
+        }
+
+        i++ 
+    }
+/*
     for(int i = 0; i < g_filemap.size();i++)
     {
         cout << g_filemap[i].second<< " | ";
         //cout << getFileSize(g_filemap[i].first) << "\n";
     }
     return;
+    */
 }
 
 
