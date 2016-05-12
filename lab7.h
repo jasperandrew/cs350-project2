@@ -446,25 +446,26 @@ void overwrite(string filename, string howmany, string start, string c)
 	{
 	  //open segment find inode location
      	  string seg_path = "DRIVE/SEGMENT" + to_string(seg+1);
-	  ifstream segment(seg_path, ios::in | ios::binary);
-	  segment.seekg(BLOCK_SZ * (segBlock-1));
+	  ifstream segmentR(seg_path, ios::in | ios::binary);
+	  segmentR.seekg(BLOCK_SZ * (segBlock-1));
 
 	  //read inode struct from segment
 	  char tmp[sizeof(inode)];
-	  segment.read(tmp, sizeof(inode));
-	  segment.close();
+	  segmentR.read(tmp, sizeof(inode));
+	  segmentR.close();
 	  inode tmp_inode;
 	  memcpy(&tmp_inode, tmp, sizeof(inode));
 
 	  //change filesize of inode
-	  tmp_inode.filesize = sizeof(char)*copyNum;
-	  memcpy(&tmp, tmp_inode, sizeof(inode));
+	  tmp_inode.filesize = sizeof(char)*(copyNum + sByte);
+	  const inode* inodeVoidPtr = &tmp_inode;
+	  memcpy(&tmp, inodeVoidPtr, sizeof(inode));
 
 	  //write back change to segment 
-	  ofstream segment(seg_path, ios::in | ios::binary);
-          segment.seekp(BLOCK_SZ * (segBlock-1));
-	  segment.write(tmp, sizeof(inode));
-          segment.close();
+	  ofstream segmentW(seg_path, ios::in | ios::binary);
+          segmentW.seekp(BLOCK_SZ * (segBlock-1));
+	  segmentW.write(tmp, sizeof(inode));
+          segmentW.close();
 
 	  size = tmp_inode.filesize;
 	}
