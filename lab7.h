@@ -440,8 +440,7 @@ void overwrite(string filename, string howmany, string start, string c)
   int blockNum = 0;
   int size = 0;
   int index = 0;
-
-  Block inodeB = new Block(1);
+  char bigBuffer[MAX_FILE_SZ];
 
   //get inode Block Num and file map index                                                                                                                                                                                                                   
   for(int i = 0; i < g_filemap_ctr; i++)
@@ -456,35 +455,35 @@ void overwrite(string filename, string howmany, string start, string c)
   /*Block inode*/ 
   inode node = readInode(blockNum);
   Block *inodeB = new Block(1);
-  for(int i; i < 128;i++)
+  for(int i = 0; i < 128;i++)
     {
       if(node.datablocks[i])
 	{
  	  readData(node.datablocks[i]);
-	  char bigBuffer[MAX_FILE_SZ];
 	  memcpy(bigBuffer+(i*BLOCK_SZ), block_buffer, BLOCK_SZ);	  
 	}
     }
   
-  
-  
-  string path = "DRIVE/SEGMENT";
-  ofstream segment(path + to_string(seg), ios::out | ios::binary);
-  for(int i = 0; i< copyNum;i++)
+  for(int j = sByte; j < copyNum+sByte;j++)
     {
-      segment.seekp(BLOCK_SZ * (segBlock-1) + sByte);
-      segment.write(chr, 1);
-      segment.close();
+      bigBuffer[j] = *chr;
     }
     
-  Block *dataB = new Block(0);
-  dataB.setData(block_buffer);
-  wbuffer.addBlock(dataB);
-  int block_number = BLOCK_SZ * current_segment + wbuffer.getNumBlocks(); 
-  inodeB -> addBlockNum(block_number);
-	
-    
- 
+  char replaceBuf[BLOCK_SZ];
+  int replaceCount = 0;
+  for(int k = 0; k < MAX_FILE_SZ; k++)
+    {
+      if(replaceCount == 1023) 
+	{
+	  Block *dataB = new Block(0);
+	  dataB ->setData(replaceBuf);
+	  wbuffer.addBlock(dataB);
+	  int block_number = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
+	  inodeB -> addBlockNum(block_number);
+	  replaceCount = 0;
+	}
+      replaceBuf[replaceCount] = bigBuffer[k]; 
+    }
   return;
 }
 
@@ -556,7 +555,7 @@ void overwrite(string filename, string howmany, string start, string c)
 
 	  size = tmp_inode.filesize;
 	}
-	}*/
+	}
   //write char copyNum times to segment location
   if(copyNum + sByte <= size)
     {
