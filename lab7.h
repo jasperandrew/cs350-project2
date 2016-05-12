@@ -443,22 +443,19 @@ void overwrite(string filename, string howmany, string start, string c)
   int sByte = stoi(start);
   char *chr = &c.at(0);
   int blockNum = 0;
-  int size = 0;
-  int index = 0;
   char bigBuffer[MAX_FILE_SZ];
-
+  inode node;
   //get inode Block Num and file map index                                                                                                                                                                                                                   
   for(int i = 0; i < g_filemap_ctr; i++)
     {
       if(g_filemap[i].name == filename)
         {
-          blockNum = g_imap.list[g_filemap[i].num];
-          size = g_filemap[i].num;// <-- don't modify the filemap unless you're adding a file
-          index = i;
+	  node = readInode(blockNum);
+          //blockNum = g_imap.list[g_filemap[i].num];
         }
     }
   /*Block inode*/ 
-  inode node = readInode(blockNum);
+  //inode node = readInode(blockNum);
   Block *inodeB = new Block(1);
   for(int i = 0; i < 128;i++)
     {
