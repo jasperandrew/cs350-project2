@@ -38,11 +38,7 @@ typedef struct filemap_entry_struct {
 } filemap_entry;
 
 // ============================ GLOBAL VARIABLES ============================== //
-/*
-   struct sysdata {
-   int curr_segment;
-   } g_sysdata;
-   */
+
 char mem_segment[SEG_SZ];
 int mem_segment_idx;
 int current_segment;
@@ -50,6 +46,7 @@ int current_segment;
 char block_buffer[BLOCK_SZ];
 
 filemap_entry g_filemap[FILE_LIMIT];
+int g_filemap_ctr = 0;
 
 struct Checkpoint_Region{
     unsigned int imaps[40];
@@ -287,49 +284,30 @@ void writeCheckpoint()
 
 // ============================ FILEMAP FUNCTIONS ============================ //
 
-void initFileMap()
+void readFileMap()
 {
-    string path = "DRIVE/FILE_MAP";
-    ifstream filemap(path);
-
-    if(filemap.good())
-    {
-        pair<int, string> tmp;
-        int iNodenum;
-        string line, tmpFileName;
-        if(DBG) cout << "Reading Filename map\n";
-        while(getline(filemap,line))
-        {
-            stringstream s(line);
-            s >> iNodenum >> tmpFileName;
-            tmp.first = iNodenum;
-            tmp.second = tmpFileName;
-            g_filemap.push_back(tmp);
-        }
-        if(DBG){ cout << "File map exists\n";}
-        //return 1;
-    }else{
-        ofstream ofilemap("DRIVE/FILE_MAP", ios::out | ios::binary);
-        for(int i = 0; i < g_filemap.size(); i++)
-        {
-            ofilemap << g_filemap[i].first << "\t" << g_filemap[i].second << "\n";
-        } 
-        ofilemap.close();
-    }
-    return;
+	ifstream filemap("DRIVE/FILE_MAP", ios::in);
+	if(DBG) cout << "Reading from FILE_MAP\n";
+	g_filemap_ctr = 0;
+	string line;
+	while(getline(filemap,line))
+	{
+		stringstream s(line);
+		s >> g_filemap[g_filemap_ctr].num >> g_filemap[g_filemap_ctr].name;
+		g_filemap_ctr++;
+	}
+	filemap.close();
 }
 
 void writeFileMap()
 {
-    ofstream ofilemap("DRIVE/FILE_MAP", ios::out | ios::binary);
-    for(int i = 0; i < g_filemap.size(); i++)
-    {
-        ofilemap << g_filemap[i].first << "\t" << g_filemap[i].second << "\n";
-    } 
-    ofilemap.close();
-    return;
+	ofstream filemap("DRIVE/FILE_MAP", ios::out);
+	if(DBG) cout << "Writing to FILE_MAP\n";
+	for(int i = 0; i < g_filemap_ctr; i++){
+		filemap << g_filemap[i].num << "\t" << g_filemap[i].name << "\n";
+	} 
+	filemap.close();
 }
-
 
 // ============================ HELPER FUNCTIONS ============================ //
 
@@ -377,76 +355,76 @@ void readData(block_num num)
 }
 
 int getInodeNum(string filename){
-		for(int i = 0; i < g_filemap.size(); i++){
-			cout << "blah";
-			if(g_filemap[i].second == filename) return g_filemap[i].first;
-		}
-		return -1;
+	for(int i = 0; i < g_filemap_ctr; i++){
+		if(g_filemap[i].name == filename) return g_filemap[i].num;
+	}
+	cout << "{{ " << g_filemap;
+	return -1;
 }
 
 // ==================================================================================================== //
 // ========================================== MAIN FUNCTIONS ========================================== //
 // ==================================================================================================== //
 
-int import(string filepath, string lfs_filename)
+// ============================ IMPORT ============================ //
+int import(string filepath, string filename)
 {
-	cout << "Importing '" << filepath << "' --> " << lfs_filename << "\n";
-   ifstream input_file(filepath, ios::in | ios::ate | ios::binary);
-    if(input_file){
-        int file_len = input_file.tellg();
-        Block *inode_block = new Block(1);
-        inode_block->setSize(file_len);
-        inode_block->setFilename(lfs_filename);
+	cout << "Importing '" << filepath << "' --> " << filename << "\n";
+	ifstream input_file(filepath, ios::in | ios::ate | ios::binary);
+	if(input_file){
+		int file_len = input_file.tellg();
+		Block *inode_block = new Block(1);
+		inode_block->setSize(file_len);
+		inode_block->setFilename(filename);
 
-        for(int i = 0; i < file_len; i += BLOCK_SZ){
-            input_file.seekg(i);
-            char tmp_data[BLOCK_SZ] = {0};
-            input_file.read(tmp_data, BLOCK_SZ);
+		for(int i = 0; i < file_len; i += BLOCK_SZ){
+			input_file.seekg(i);
+			char tmp_data[BLOCK_SZ] = {0};
+			input_file.read(tmp_data, BLOCK_SZ);
 
-            Block *data_block = new Block(0);
-            data_block->setData(tmp_data);
+			Block *data_block = new Block(0);
+			data_block->setData(tmp_data);
 
-            wbuffer.addBlock(data_block);
-            int block_number = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
-            inode_block->addBlockNum(block_number);
-        }
+			wbuffer.addBlock(data_block);
+			int block_number = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
+			inode_block->addBlockNum(block_number);
+		}
 
-        wbuffer.addBlock(inode_block);
+		wbuffer.addBlock(inode_block);
 
-        g_filemap.push_back(make_pair(g_imap.idx, lfs_filename));
+		g_filemap[g_filemap_ctr].num = g_imap.idx;
+		g_filemap[g_filemap_ctr].name = filename;
+		g_filemap_ctr++;
 
-        //BLOCK_SZ*current_segment + (getNumBlocks%1024)
-        g_imap.list[g_imap.idx++] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks(); 
+		g_imap.list[g_imap.idx++] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks(); 
 
-        for(int n : g_imap.list) if(n) cout << n << " "; else break;
+		//Block * imap_block = new Block(2);
+		//wbuffer.addBlock(imap_block);
 
-        //Block * imap_block = new Block(2);
-        //wbuffer.addBlock(imap_block);
-
-        //if(imap_block->isFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks()%BLOCK_SZ; 
-        //else writeCheckpoint();
-    }
-    else
-    {
-        cout<< "File Does Not Exist!\n";
-    }
-    return 0;
+		//if(imap_block->isFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks()%BLOCK_SZ; 
+		//else writeCheckpoint();
+	}
+	else
+	{
+		cout << "File '" << filename << "' does not exist!\n";
+	}
+	return 0;
 }
 
+// ============================ REMOVE ============================ //
 void remove(string filename)
 {
 	cout << "Removing: " << filename << "\n";
-	for(int i = 0; i < g_filemap.size(); i++){
-		if(g_filemap[i].second == filename){
-			g_filemap.erase(g_filemap.begin()+i);
-			if(DBG) cout << " happened in remove\n";
+	for(int i = 0; i < g_filemap_ctr; i++){
+		if(g_filemap[i].name == filename){
+			g_filemap[i].num = -1;
 		} else {
-			cout << "File Does Not Exist!\n";
+			cout << "File '" << filename << "' does not exist!\n";
 		}
 	}
-	return;
 }
 
+// ============================ OVERWRITE ============================ //
 void overwrite(string filename, string howmany, string start, string c)
 {/*
   //convert strings args to ints
@@ -530,18 +508,19 @@ void overwrite(string filename, string howmany, string start, string c)
 	*/
 }
 
+// ============================ LIST ============================ //
 void list()
 {
 	cout << "\nFile List\n----------------------------\n";
-	for(int i = 0; i < g_filemap.size();i++){
-		cout << g_filemap[i].second << " (";
-		cout << readInode(g_filemap[i].first).filesize << " bytes)\n";
+	for(int i = 0; i < g_filemap_ctr;i++){
+		cout << g_filemap[i].name << " (";
+		cout << readInode(g_filemap[i].num).filesize << " bytes)\n";
 	}
 }
 
+// ============================ CAT ============================ //
 void cat(string filename)
 {		
-		//for(int i = 0; i < g_filemap.size(); i++) cout << g_filemap[i].first;
 		int inode_num = getInodeNum(filename);
 		if(inode_num == -1){
 			cout << "File '" << filename << "' does not exist!\n";
@@ -559,6 +538,7 @@ void cat(string filename)
 		cout << endl;
 }
 
+// ============================ INITDRIVE ============================ //
 int initDrive()
 {
     string path = "DRIVE";

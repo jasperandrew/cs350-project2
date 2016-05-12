@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 	
 	initDrive();
 	checkPointInit();
-	initFileMap();
+	readFileMap();
 	cout << "\nDone! Now it's time for you to grab L.I.F.E. by the horns!\n"
 	        "Enter a command, or enter 'help' for usage information.\n"
 	        "\n{epic prompt} ";
