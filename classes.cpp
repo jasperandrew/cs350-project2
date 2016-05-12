@@ -14,8 +14,8 @@ WriteBuffer::WriteBuffer(){
     num_blocks = 0;
     inode_counter = 0;
     for(int i = 0; i < 8; i++){
-        Block *s = new Block(3);
-        addBlock(s);
+        seg_summary[i] = new Block(3);
+        addBlock(seg_summary[i]);
     }
 }
 
@@ -49,6 +49,8 @@ void WriteBuffer::writeToDisk(){
 
     Checkpoint_Region.liveBits[nextSegment] = 1;
     num_blocks = 8;
+    for(int i =0; i < num_blocks; i++) seg_summary[i]->clearSegSum();
+
     current_segment++;
 }
 
@@ -68,11 +70,26 @@ Block* WriteBuffer::getBlock(int idx){
     return buf[idx];
 }
 
+//-----------wbuffer segsum-----------//
+
+void WriteBuffer::addSegInfo(block_num * data_blocks, block_num inode_block)
+{
+    for(int i = 0; i < MAX_FILE_BLOCKS; i++)
+    {
+        if(data_blocks[i] == 0) break;
+        seg_summary[(data_blocks[i])/(BLOCK_SZ/8)]->addBlockNumSum(data_blocks[i], inode_block);
+    }
+}
+
+
+
+
+
+
 //------------imaps---------------------//
 void Block::addToCheckpointRegion(){
     
     Checkpoint_Region.imaps[Checkpoint_Region_counter++] = (BLOCK_SZ * current_segment)+ wbuffer.getNumBlocks(); 
-    //cout << "checkpoint_region"<< Checkpoint_Region_counter-1<< ": " <<Checkpoint_Region.imaps[Checkpoint_Region_counter-1] <<"\n" ; 
 
 }
 
