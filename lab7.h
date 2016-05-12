@@ -156,6 +156,7 @@ class WriteBuffer {
 
 WriteBuffer wbuffer;
 
+
 // ============================ IMAP FUNCTIONS ============================ //
 
 void transferImap(block_num * imap_data)
@@ -205,6 +206,7 @@ void writeImaps(){
         imap_block->addInodeData(i);
     } 
 }
+
 
 // ============================ CHECKPOINT FUNCTIONS ============================ //
 
@@ -280,6 +282,7 @@ void lookForFreeSpots(string lfs_filename)
     return;
 }
 
+
 // ============================ FILEMAP FUNCTIONS ============================ //
 
 void readFileMap()
@@ -306,6 +309,7 @@ void writeFileMap()
 	} 
 	filemap.close();
 }
+
 
 // ============================ HELPER FUNCTIONS ============================ //
 
@@ -358,6 +362,7 @@ int getInodeNum(string filename){
 	return -1;
 }
 
+
 // ==================================================================================================== //
 // ========================================== MAIN FUNCTIONS ========================================== //
 // ==================================================================================================== //
@@ -407,6 +412,7 @@ int import(string filepath, string filename)
 	return 0;
 }
 
+
 // ============================ REMOVE ============================ //
 void remove(string filename)
 {
@@ -427,6 +433,7 @@ void remove(string filename)
 	}
 	g_imap.list[remove_block] = UINT_MAX;
 }
+
 
 // ============================ OVERWRITE ============================ //
 void overwrite(string filename, string howmany, string start, string c)
@@ -571,6 +578,7 @@ void overwrite(string filename, string howmany, string start, string c)
 	
   }*/
 
+
 // ============================ LIST ============================ //
 void list()
 {
@@ -580,6 +588,7 @@ void list()
 		cout << readInode(g_filemap[i].num).filesize << " bytes)\n";
 	}
 }
+
 
 // ============================ CAT ============================ //
 void cat(string filename)
@@ -601,25 +610,45 @@ void cat(string filename)
 		cout << endl;
 }
 
+
 // ============================ DISPLAY ============================ //
 void display(string filename, int how_many, int start)
-{		
+{
 		int inode_num = getInodeNum(filename);
 		if(inode_num == -1){
 			cout << "File '" << filename << "' does not exist!\n";
 			return;
 		}
+		
+		int start_block = start/BLOCK_SZ;
+		int start_offset = start % BLOCK_SZ;
+		int bytes_read = 0;
+		
 		inode file_inode = readInode(inode_num);
-		for(int i = 0; i < MAX_FILE_BLOCKS; i++){
+		for(int i = start_block; i < MAX_FILE_BLOCKS; i++){
 			if(file_inode.datablocks[i]){
-				readData(file_inode.datablocks[i]);
-				printf("%.*s", BLOCK_SZ, block_buffer);
+				if(bytes_read < how_many){
+					readData(file_inode.datablocks[i]);
+					if(how_many - bytes_read >= BLOCK_SZ)
+						printf("%.*s", BLOCK_SZ, block_buffer);
+					else
+						printf("%.*s", how_many-bytes_read, block_buffer);
+				}else{
+					cout << "\n\nComplete! (read " << how_many << " bytes)\n";
+					return;
+				}
 			}else{
-				break;
+				cout << "\n\nReached end of file (read " << bytes_read << " bytes)\n";
+				return;
 			}
 		}
-		cout << endl;
+		
+		if(bytes_read < how_many)
+			cout << "\n\nReached end of file (read " << bytes_read << " bytes)\n";
+		else
+			cout << "\n\nComplete! (read " << how_many << " bytes)\n";
 }
+
 
 // ============================ INITDRIVE ============================ //
 int initDrive()
