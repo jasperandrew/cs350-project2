@@ -499,7 +499,7 @@ void list()
 int getInodeNum(string filename){
 		for(int i = 0; i < g_filemap.size(); i++){
 			cout << "blah";
-			if(g_filemap[i].second == filename) return 0;//g_filemap[i].first;
+			if(g_filemap[i].second == filename) return g_filemap[i].first;
 		}
 		return -1;
 }
