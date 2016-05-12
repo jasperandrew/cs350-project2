@@ -441,19 +441,19 @@ void overwrite(string filename, string howmany, string start, string c)
   int index = 0;
 
   //get inode Block Num and file map index                                                                                                                                                                                                                    
-  for(int i = 0; i < g_filemap.size(); i++)
+  for(int i = 0; i < g_filemap_ctr; i++)
     {
-      if(g_filemap[i].second == filename)
+      if(g_filemap[i].name == filename)
         {
-          blockNum = g_imap.list[g_filemap[i].first];
-          size = g_filemap[i].first;
+          blockNum = g_imap.list[g_filemap[i].num];
+          size = g_filemap[i].num;// <-- don't modify the filemap unless you're adding a file
           index = i;
         }
     }
   /*Block *inode = */ 
   inode node = readInode(blockNum);
   node.filesize = sizeof(char)*(copyNum+sByte);
-  g_filemap[index].first = node.filesize;
+  g_filemap[index].num = node.filesize;// <-- don't modify the filemap unless you're adding a file
   int seg = blockNum/1024;
   int segBlock = blockNum % 1024; 
   //write char copyNum times to segment location                                                                                                                                                                                                             
