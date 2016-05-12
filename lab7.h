@@ -27,6 +27,16 @@ using namespace std;
 
 typedef unsigned int block_num;
 
+typedef struct seg_list{
+    int size;
+    block_num inodes[BLOCK_SZ];
+} inode_list;
+
+typedef struct segment_struct {
+    unsigned int inode_number;
+    unsigned int block_number;
+} segment_entry;
+
 typedef struct inode_struct {
     char filename[256];
     int filesize;
@@ -70,9 +80,13 @@ class Block {
                 for(int i = 0; i < BLOCK_SZ; i++) data[i] = 0;
             else if(type == 2)
                 for(int i = 0; i < BLOCK_SZ/4; i++) block_data[i] = 0;
-            else if(type == 3)
-                for(int i = 0; i < BLOCK_SZ/4; i++) block_data[i] = 0;
-
+            else if(type == 3){
+               seg_inodes.size=0; 
+               for(int i = 0; i < BLOCK_SZ/8; i++){ 
+                   seg_sum_arr[i].inode_number = 0;
+                   seg_sum_arr[i].block_number = 0;
+               }
+            }
             num_blocks = 0;
 						//initInode(&inode_data);
         }
@@ -92,8 +106,10 @@ class Block {
                 memcpy(mem_segment+(mem_segment_idx++ * BLOCK_SZ), data, BLOCK_SZ);
             else if(type == 1)
                 memcpy(mem_segment+(mem_segment_idx++ * BLOCK_SZ), &inode_data, sizeof(inode));
-            else if(type == 2 || type == 3)
+            else if(type == 2)
                 memcpy(mem_segment+(mem_segment_idx++ * BLOCK_SZ), block_data, BLOCK_SZ);
+            else if(type ==3)
+                memcpy(mem_segment+(mem_segment_idx++ * BLOCK_SZ), seg_sum_arr, BLOCK_SZ);
         }
 
         // inode
@@ -127,8 +143,19 @@ class Block {
         bool isFull(){ return block_data[BLOCK_SZ - 1]; }
 
         // segment summary
-        void addBlockNumType(block_num n, int type){block_data[num_blocks++] = n;}
-	Block* getInode(int inode_num);
+        void addBlockNumSum(block_num n, block_num x){
+            seg_sum_arr[num_blocks].block_number = n;
+            seg_sum_arr[num_blocks++].inode_number = x;
+            if(n==x) seg_inodes.inodes[seg_inodes.size++] = x;
+        }
+        inode_list getSegInodes(){ return seg_inodes;}
+        void clearSegSum(){
+         for(int i = 0; i < BLOCK_SZ/8; i++){ 
+             seg_sum_arr[i].block_number = 0;
+             seg_sum_arr[i].inode_number = 0;
+         }
+        }
+        
 
     private:
         int type;
@@ -136,6 +163,8 @@ class Block {
         inode inode_data;
         block_num block_data[BLOCK_SZ/4];
         int num_blocks;
+        segment_entry seg_sum_arr[BLOCK_SZ/8];
+        inode_list seg_inodes;
 };
 
 class WriteBuffer {
@@ -146,11 +175,13 @@ class WriteBuffer {
         void writeToDisk();
         int getNumBlocks();
         int getInodeCounter(int increment);
+        void addSegInfo(block_num * data_blocks, block_num inode_block);
         Block* getBlock(int idx);
         //Block* createImapBlock();
     private:
         Block *buf[BLOCK_SZ];
         int num_blocks, inode_counter;
+        Block *seg_summary[8];
 };
 
 WriteBuffer wbuffer;
@@ -368,6 +399,7 @@ int import(string filepath, string filename)
 {
 	cout << "Importing '" << filepath << "' --> " << filename << "\n";
 	ifstream input_file(filepath, ios::in | ios::ate | ios::binary);
+    block_num blocknums[128] = {0};
 	if(input_file){
 		int file_len = input_file.tellg();
 		Block *inode_block = new Block(1);
@@ -385,9 +417,11 @@ int import(string filepath, string filename)
 			wbuffer.addBlock(data_block);
 			int block_number = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
 			inode_block->addBlockNum(block_number);
+            blocknums[i/BLOCK_SZ] = block_number;
 		}
 
 		wbuffer.addBlock(inode_block);
+        wbuffer.addSegInfo(blocknums,wbuffer.getNumBlocks());
 
 		g_filemap[g_filemap_ctr].num = g_imap.idx;
 		g_filemap[g_filemap_ctr].name = filename;
