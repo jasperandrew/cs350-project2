@@ -21,6 +21,7 @@ using namespace std;
 #define BLOCK_SZ 1024
 #define SEG_SZ 1024*BLOCK_SZ
 #define MAX_FILE_BLOCKS 128
+#define MAX_FILE_SZ MAX_FILE_BLOCKS*BLOCK_SZ
 #define FILE_LIMIT 10240
 
 // ============================ STRUCTS ============================ //
@@ -440,7 +441,9 @@ void overwrite(string filename, string howmany, string start, string c)
   int size = 0;
   int index = 0;
 
-  //get inode Block Num and file map index                                                                                                                                                                                                                    
+  Block inodeB = new Block(1);
+
+  //get inode Block Num and file map index                                                                                                                                                                                                                   
   for(int i = 0; i < g_filemap_ctr; i++)
     {
       if(g_filemap[i].name == filename)
@@ -450,24 +453,38 @@ void overwrite(string filename, string howmany, string start, string c)
           index = i;
         }
     }
-  /*Block *inode = */ 
+  /*Block inode*/ 
   inode node = readInode(blockNum);
-  node.filesize = sizeof(char)*(copyNum+sByte);
-  g_filemap[index].num = node.filesize;// <-- don't modify the filemap unless you're adding a file
-  int seg = blockNum/1024;
-  int segBlock = blockNum % 1024; 
-  //write char copyNum times to segment location                                                                                                                                                                                                             
-  if(copyNum + sByte <= size)
+  Block *inodeB = new Block(1);
+  for(int i; i < 128;i++)
     {
-      string path = "DRIVE/SEGMENT";
-      ofstream segment(path + to_string(seg), ios::out | ios::binary);
-      for(int i = 0; i< copyNum;i++)
-        {
-          segment.seekp(BLOCK_SZ * (segBlock-1) + sByte);
-          segment.write(chr, 1);
-          segment.close();
-        }
+      if(node.datablocks[i])
+	{
+ 	  readData(node.datablocks[i]);
+	  char bigBuffer[MAX_FILE_SZ];
+	  memcpy(bigBuffer+(i*BLOCK_SZ), block_buffer, BLOCK_SZ);	  
+	}
     }
+  
+  
+  
+  string path = "DRIVE/SEGMENT";
+  ofstream segment(path + to_string(seg), ios::out | ios::binary);
+  for(int i = 0; i< copyNum;i++)
+    {
+      segment.seekp(BLOCK_SZ * (segBlock-1) + sByte);
+      segment.write(chr, 1);
+      segment.close();
+    }
+    
+  Block *dataB = new Block(0);
+  dataB.setData(block_buffer);
+  wbuffer.addBlock(dataB);
+  int block_number = BLOCK_SZ * current_segment + wbuffer.getNumBlocks(); 
+  inodeB -> addBlockNum(block_number);
+	
+    
+ 
   return;
 }
 
@@ -539,7 +556,7 @@ void overwrite(string filename, string howmany, string start, string c)
 
 	  size = tmp_inode.filesize;
 	}
-	}
+	}*/
   //write char copyNum times to segment location
   if(copyNum + sByte <= size)
     {
