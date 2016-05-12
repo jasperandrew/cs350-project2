@@ -403,7 +403,49 @@ void readData(block_num num)
 
 //----------overwrite--------------//
 void overwrite(string filename, string howmany, string start, string c)
-{/*
+{
+  //convert strings args to ints                                                                                                                                                                                                                              
+  int copyNum =  stoi(howmany);
+  int sByte = stoi(start);
+  char *chr = &c.at(0);
+  int blockNum = 0;
+  int size = 0;
+  int index = 0;
+
+  //get inode Block Num and file map index                                                                                                                                                                                                                    
+  for(int i = 0; i < g_filemap.size(); i++)
+    {
+      if(g_filemap[i].second == filename)
+        {
+          blockNum = g_imap.list[g_filemap[i].first];
+          size = g_filemap[i].first;
+          index = i;
+        }
+    }
+  /*Block *inode = */ 
+  inode node = readInode(blockNum);
+  node.filesize = sizeof(char)*(copyNum+sByte);
+  g_filemap[index].first = node.filesize;
+  int seg = blockNum/1024;
+  int segBlock = blockNum % 1024; 
+  //write char copyNum times to segment location                                                                                                                                                                                                             
+  if(copyNum + sByte <= size)
+    {
+      string path = "DRIVE/SEGMENT";
+      ofstream segment(path + to_string(seg), ios::out | ios::binary);
+      for(int i = 0; i< copyNum;i++)
+        {
+          segment.seekp(BLOCK_SZ * (segBlock-1) + sByte);
+          segment.write(chr, 1);
+          segment.close();
+        }
+    }
+  return;
+}
+
+
+/*void overwrite(string filename, string howmany, string start, string c)
+{
   //convert strings args to ints
   int copyNum =  stoi(howmany);
   int sByte = stoi(start);
@@ -421,7 +463,7 @@ void overwrite(string filename, string howmany, string start, string c)
 	  size = g_filemap[i].first;
 	  index = i;
         }
-    }
+	}
   int seg = blockNum/1024;
   int segBlock = blockNum % 1024;
 
@@ -432,14 +474,14 @@ void overwrite(string filename, string howmany, string start, string c)
       char tmp_data[BLOCK_SZ] = {0};
       incBlock->setData(tmp_data);
       //if in current segment get inode from the wbuffer
-      if(seg == current_segment)
+      inode theInode = readInode(blockNum);
+      
 	{
 	  Block *inode = wbuffer.getBlock(segBlock-1);
 	  wbuffer.addBlock(incBlock);
 	  int dataBlockNum = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
 	  inode->addBlockNum(dataBlockNum);
-	  g_filemap[index].first = getFileSize(blockNum);
-	  size = g_filemap[index].first;
+	 
 	}
       //if inode not in buffer find it in the segment file
       else
@@ -469,7 +511,7 @@ void overwrite(string filename, string howmany, string start, string c)
 
 	  size = tmp_inode.filesize;
 	}
-    }
+	}
   //write char copyNum times to segment location
   if(copyNum + sByte <= size)
     {
@@ -477,14 +519,14 @@ void overwrite(string filename, string howmany, string start, string c)
       ofstream segment(path + to_string(seg), ios::out | ios::binary);
       for(int i = 0; i< copyNum;i++)
         {
-          segment.seekp(sByte + i);
+          segment.seekp(BLOCK_SZ * (segBlock-1));
           segment.write(chr, 1);
           segment.close();
         }
     }
   return;
-	*/
-}
+	
+  }*/
 
 
 // --------------------- list --------------------- //
