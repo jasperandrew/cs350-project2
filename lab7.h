@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <string.h>
+#include <limits.h>
 
 #include <iostream>
 #include <cstring>
@@ -176,7 +177,6 @@ void readImaps()
 
         }
         int block_number = Checkpoint_Region.imaps[i];
-       // cout << "Recieved imap block num: " << Checkpoint_Region.imaps[i] << "\n";
         int seg_idx = block_number/1024;
         int seg_block = block_number % 1024;
 
@@ -191,29 +191,7 @@ void readImaps()
             fseek(fp, (BLOCK_SZ * (seg_block-1)), SEEK_SET);
             fread(tmpB, sizeof(block_num), BLOCK_SZ/4, fp);
             fclose(fp);
-            for(int x = 0; x < 256; x++)
-            {
-                //cout << "tmpB" << x << ": " << tmpB[x] << "\n";
-            }
             transferImap(tmpB);
-            /*
-               ifstream segment(seg_path, ios::in | ios::binary);
-               segment.seekg(BLOCK_SZ * (seg_block-1));
-
-               cout << seg_path << " block: " << seg_block << "\n";
-
-
-               unsigned char tmp[BLOCK_SZ];
-               segment.read(tmp, sizeof(tmp));
-               segment.close();
-            //Block tmp_imap(2);
-
-            block_num tmpB[BLOCK_SZ/4];
-            memcpy(tmpB, tmp, BLOCK_SZ);
-            transferImap(tmpB);
-            */
-            //memcpy(&tmp_imap, tmp, sizeof(Block));
-            //transferImap(tmp_imap.getData())*/
         } 
     }
 }
@@ -279,6 +257,25 @@ void writeCheckpoint()
         fclose(checkpoint_file);
     }
     else perror("File Open Failed: ");
+    return;
+}
+
+void lookForFreeSpots(string lfs_filename)
+{
+    bool found = false;
+    for(int i = 0; i < 10240; i++)
+    {
+        if(g_imap.list[i] == UINT_MAX)
+        {
+            g_filemap[g_filemap_ctr].num = i;
+            g_filemap[g_filemap_ctr].name = lfs_filename;
+						g_filemap_ctr++;
+						
+            g_imap.list[i] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
+            found = true;
+        }
+    }
+    if(!found) cout << "YER OUTTER SPACE!\n";
     return;
 }
 
@@ -414,14 +411,22 @@ int import(string filepath, string filename)
 // ============================ REMOVE ============================ //
 void remove(string filename)
 {
-	cout << "Removing: " << filename << "\n";
+	bool removed = false;
+	unsigned int remove_block;
 	for(int i = 0; i < g_filemap_ctr; i++){
 		if(g_filemap[i].name == filename){
+			remove_block = g_filemap[i].num;
 			g_filemap[i].num = -1;
-		} else {
-			cout << "File '" << filename << "' does not exist!\n";
+			removed = true;
+			if(DBG) cout << "Removed " << filename << "\n";
 		}
 	}
+	if(!removed)
+	{
+	cout << "File '" << filename << "' does not exist!\n";
+	return;
+	}
+	g_imap.list[remove_block] = UINT_MAX;
 }
 
 // ============================ OVERWRITE ============================ //
@@ -469,25 +474,26 @@ void overwrite(string filename, string howmany, string start, string c)
 	{
 	  //open segment find inode location
      	  string seg_path = "DRIVE/SEGMENT" + to_string(seg+1);
-	  ifstream segment(seg_path, ios::in | ios::binary);
-	  segment.seekg(BLOCK_SZ * (segBlock-1));
+	  ifstream segmentR(seg_path, ios::in | ios::binary);
+	  segmentR.seekg(BLOCK_SZ * (segBlock-1));
 
 	  //read inode struct from segment
 	  char tmp[sizeof(inode)];
-	  segment.read(tmp, sizeof(inode));
-	  segment.close();
+	  segmentR.read(tmp, sizeof(inode));
+	  segmentR.close();
 	  inode tmp_inode;
 	  memcpy(&tmp_inode, tmp, sizeof(inode));
 
 	  //change filesize of inode
-	  tmp_inode.filesize = sizeof(char)*copyNum;
-	  memcpy(&tmp, tmp_inode, sizeof(inode));
+	  tmp_inode.filesize = sizeof(char)*(copyNum + sByte);
+	  const inode* inodeVoidPtr = &tmp_inode;
+	  memcpy(&tmp, inodeVoidPtr, sizeof(inode));
 
 	  //write back change to segment 
-	  ofstream segment(seg_path, ios::in | ios::binary);
-          segment.seekp(BLOCK_SZ * (segBlock-1));
-	  segment.write(tmp, sizeof(inode));
-          segment.close();
+	  ofstream segmentW(seg_path, ios::in | ios::binary);
+          segmentW.seekp(BLOCK_SZ * (segBlock-1));
+	  segmentW.write(tmp, sizeof(inode));
+          segmentW.close();
 
 	  size = tmp_inode.filesize;
 	}
