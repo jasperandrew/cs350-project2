@@ -314,7 +314,6 @@ inode readInode(int inode_num)
     int seg_idx = inode_block/BLOCK_SZ;
     int seg_block = inode_block % BLOCK_SZ;
 		inode tmp_inode;
-		//initInode(&tmp_inode);
 
     if(seg_idx == current_segment){
         tmp_inode = wbuffer.getBlock(seg_block-1)->getInode();
@@ -346,7 +345,7 @@ void readData(block_num num)
         ifstream segment(seg_path, ios::in | ios::binary);
         segment.seekg(BLOCK_SZ * (seg_block-1));
 
-				segment.read(block_buffer, SEG_SZ);
+				segment.read(block_buffer, BLOCK_SZ);
         segment.close();
 		}
 }
@@ -355,7 +354,6 @@ int getInodeNum(string filename){
 	for(int i = 0; i < g_filemap_ctr; i++){
 		if(g_filemap[i].name == filename) return g_filemap[i].num;
 	}
-	cout << "{{ " << g_filemap;
 	return -1;
 }
 
@@ -450,7 +448,7 @@ void overwrite(string filename, string howmany, string start, string c)
           index = i;
         }
     }
-  /*Block *inode = */ 
+  /*Block *inode = */
   inode node = readInode(blockNum);
   node.filesize = sizeof(char)*(copyNum+sByte);
   g_filemap[index].num = node.filesize;// <-- don't modify the filemap unless you're adding a file
@@ -586,31 +584,48 @@ void cat(string filename)
 		cout << endl;
 }
 
+// ============================ DISPLAY ============================ //
+void display(string filename, int how_many, int start)
+{		
+		int inode_num = getInodeNum(filename);
+		if(inode_num == -1){
+			cout << "File '" << filename << "' does not exist!\n";
+			return;
+		}
+		inode file_inode = readInode(inode_num);
+		for(int i = 0; i < MAX_FILE_BLOCKS; i++){
+			if(file_inode.datablocks[i]){
+				readData(file_inode.datablocks[i]);
+				printf("%.*s", BLOCK_SZ, block_buffer);
+			}else{
+				break;
+			}
+		}
+		cout << endl;
+}
+
 // ============================ INITDRIVE ============================ //
 int initDrive()
 {
     string path = "DRIVE";
     ifstream f(path.c_str());
     if(f.good()){
-        if(DBG) cout << "DRIVE exists\nLoading data\n";
+        if(DBG) cout << "Loading data from existing DRIVE\n";
         return 1;
     }
-    /*    else{
-          checkPointInit();
-          }*/
 
-    if(DBG) cout << "DRIVE does not exist\nCreating DRIVE directory\n";
+    if(DBG) cout << "Creating DRIVE directory\n";
 
     // Create drive directory
     mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
 
     // Create file map
-    if(DBG) cout << "Creating file map file\n";
+    if(DBG) cout << "Creating FILE_MAP file\n";
     ofstream filemap(path + string("/FILE_MAP"), ios::out);
     filemap.close();
 
     // Create checkpoint region file
-    if(DBG) cout << "Creating checkpoint region file\n";
+    if(DBG) cout << "Creating CHECKPOINT_REGION file\n";
     /*ofstream checkpoint(path + string("/CHECKPOINT_REGION"), ios::out );
       checkpoint.seekp(192-1);
       checkpoint.write("", 1);
