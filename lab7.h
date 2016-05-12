@@ -523,18 +523,19 @@ void overwrite(string filename, string howmany, string start, string c)
   wbuffer.addBlock(inodeB);
   wbuffer.addSegInfo(blocknums,wbuffer.getNumBlocks());
 
+  for(int s; s<g_filemap_ctr; s++)
+    {
+      if (g_filemap[s].name == filename)
+        {
+          g_filemap[s].name == "";
+          g_filemap[s].num == -1;
+        }
+    }
+
   g_filemap[g_filemap_ctr].num = g_imap.idx;
   g_filemap[g_filemap_ctr].name = filename;
   g_filemap_ctr++;
   
-  for(int s; s<g_filemap_ctr; s++)
-    {
-      if (g_filemap[s].name == filename)
-	{
-	  g_filemap[s].name == "";
-	  g_filemap[s].num == -1;
-	}
-    }  
 
   g_imap.list[g_imap.idx++] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks();
   return;
