@@ -318,12 +318,6 @@ int import(string filepath, string lfs_filename)
         }
 
         for(int n : g_imap.list) if(n) cout << n << " "; else break;
-
-        //Block * imap_block = new Block(2);
-        //wbuffer.addBlock(imap_block);
-
-        //if(imap_block->isFull()) Checkpoint_Region.imaps[Checkpoint_Region_counter++] = BLOCK_SZ * current_segment + wbuffer.getNumBlocks()%BLOCK_SZ; 
-        //else writeCheckpoint();
     }
     else
     {
@@ -331,6 +325,15 @@ int import(string filepath, string lfs_filename)
     }
     return 0;
 }
+
+//---------------------clean?--------------------------//
+
+void clean(int segments)
+{
+}
+
+
+
 
 // --------------------- remove --------------------- //
 void remove(string filename)
